@@ -1,7 +1,7 @@
 # MySQL Queries
 keyword_search = """
 SELECT film_id, title, description, release_year FROM sakila.film
-WHERE title LIKE %s"""
+WHERE UPPER(title) LIKE %s"""
 
 genres_years_search = """
 SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM sakila.film as f
