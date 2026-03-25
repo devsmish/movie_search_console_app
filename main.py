@@ -1,11 +1,14 @@
-from app.func_menu import *
+from app.func_menu import search_menu, stats_menu
 from app.sql_connection import get_connection
+from app.mongo_connection import get_mongo_collection
 
 
 def main():
     print("Movie Search App started")
     connection = get_connection()
     cursor = connection.cursor()
+
+    mongo_collection = get_mongo_collection()
 
     print("""
 =========================SEARCH APP=========================""")
@@ -19,9 +22,9 @@ def main():
 0. Если хотите завершить программу.""")
         initial_choice = input("Enter your option: ")
         if initial_choice == "1":
-            search_menu(cursor)
+            search_menu(cursor, mongo_collection)
         elif initial_choice == "2":
-            stats_menu()
+            stats_menu(mongo_collection)
         elif initial_choice == "0":
             print("App closed. Goodbye!")
             break

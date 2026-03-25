@@ -12,5 +12,6 @@ class Config:
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
 
     # MongoDB
-    MONGO_URL = os.getenv("MONGO_URL")
+    MONGO_URI = os.getenv("MONGO_URI")
     MONGO_DATABASE = os.getenv("MONGO_DATABASE")
+    MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")

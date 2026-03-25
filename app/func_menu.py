@@ -1,9 +1,9 @@
-from app.sql_connection import *
-from app.mongo_connection import *
+from app.sql_connection import keywords_search, list_genres, range_years, combined_search
+from app.mongo_connection import top5_requests, last5_requests
 import datetime
 
 
-def search_menu(cursor):
+def search_menu(cursor, mongo_collection):
     while True:
         print("""
 ========================МЕНЮ ПОИСКА=========================
@@ -13,15 +13,15 @@ def search_menu(cursor):
 0. Вернуться в предыдущее меню.""")
         search_choice = input("Enter your criterion: ")
         if search_choice == "1":
-            input_keyword(cursor)
+            input_keyword(cursor, mongo_collection)
         elif search_choice == "2":
-            input_genre(cursor)
+            input_genre(cursor, mongo_collection)
         elif search_choice == "0":
             break
         else:
             print("Invalid criterion. Please try again.")
 
-def stats_menu():
+def stats_menu(mongo_collection):
     while True:
         print("""
 ======================МЕНЮ СТАТИСТИКИ=======================
@@ -31,15 +31,15 @@ def stats_menu():
 0. Вернуться в предыдущее меню.""")
         statistic_choice = input("Enter your statistic: ")
         if statistic_choice == "1":
-            top5_requests()
+            top5_requests(mongo_collection)
         elif statistic_choice == "2":
-            last5_requests()
+            last5_requests(mongo_collection)
         elif statistic_choice == "0":
             break
         else:
             print("Invalid criterion. Please try again.")
 
-def input_keyword(cursor):
+def input_keyword(cursor, mongo_collection):
     while True:
         print("""
 ====================ВВОД КЛЮЧЕВОГО СЛОВА====================
@@ -51,7 +51,23 @@ def input_keyword(cursor):
         elif keyword == "0":
             break
         else:
+            start_time = datetime.datetime.now()
             results = keywords_search(keyword, cursor)
+            end_time = datetime.datetime.now()
+            duration = (end_time - start_time).total_seconds() * 1000
+            mongo_collection.insert_one(
+                {
+                    "timestamp": datetime.datetime.now(),
+                    "search_type": "keyword",
+                    "params": {
+                        "keyword": keyword,
+                    },
+                    "results_count": len(results),
+                    "duration_ms": duration,
+                    "success": True,
+                    "query_key": keyword
+                }
+            )
             for row in results:
                 print(row)
 
@@ -63,7 +79,7 @@ def show_years(genre, cursor):
     for row in result:
         print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
 
-def input_genre(cursor):
+def input_genre(cursor, mongo_collection):
     while True:
         print("""
 ===================ВЫБОР ЖАНРА ИЗ СПИСКА====================
@@ -79,9 +95,9 @@ def input_genre(cursor):
             print("Invalid genre. Please try again.")
         else:
             show_years(genre_choice, cursor)
-            input_year(cursor, genre_choice)
+            input_year(cursor, genre_choice, mongo_collection)
 
-def input_year(cursor, genre_choice):
+def input_year(cursor, genre_choice, mongo_collection):
     print("""
 =======================ДИАПАЗОН ГОДОВ=======================
 0. Вернуться в предыдущее меню.""")
@@ -91,10 +107,36 @@ def input_year(cursor, genre_choice):
     except ValueError:
         print("Введите корректные числа")
         return
-    if start_year <= 1900 or end_year > datetime.datetime.now().year:
+    if start_year > end_year:
+        print("Start year cannot be greater than end year")
+        return
+    elif start_year <= 1900 or end_year > datetime.datetime.now().year:
         print("Invalid year. Please try again.")
     else:
+        start_time = datetime.datetime.now()
         result = combined_search(cursor, genre_choice, start_year, end_year)
+        end_time = datetime.datetime.now()
+        duration = (end_time - start_time).total_seconds() * 1000
+        mongo_collection.insert_one(
+            {
+                "timestamp": datetime.datetime.now(),
+                "search_type": "genres-years",
+                "params": {
+                    "genres": genre_choice,
+                    "years": {
+                        "start_year": start_year,
+                        "end_year": end_year,
+                    }
+                },
+                "results_count": len(result),
+                "duration_ms": duration,
+                "success": True,
+                "query_key": (f"{genre_choice}_{start_year}_{end_year}")
+            }
+        )
         for num, row in enumerate(result, start=1):
+            if not result:
+                print("Ничего не найдено")
+                return
             # print(f"{num}. {row}")
             print(f"{num}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}, {row['description']}")
