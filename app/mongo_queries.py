@@ -7,7 +7,7 @@ log_example_key = {
     },
     "results_count": 3,
     "duration_ms": 340,
-    "success": true,
+    "success": True,
     "query_key": "JIN"
 }
 
@@ -23,7 +23,7 @@ log_example_gy = {
  },
     "results_count": 250,
     "duration_ms": 250,
-    "success": false,
+    "success": False,
     "query_key": "Games_2005_2010"
 }
 
