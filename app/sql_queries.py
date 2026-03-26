@@ -3,8 +3,19 @@ keyword_search = """
 SELECT film_id, title, description, release_year FROM sakila.film
 WHERE UPPER(title) LIKE %s"""
 
+count_keyword_search = """SELECT count(*) FROM sakila.film
+WHERE UPPER(title) LIKE %s"""
+
 genres_years_search = """
 SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM sakila.film as f
+JOIN sakila.film_category as fc
+ON f.film_id = fc.film_id
+JOIN sakila.category as c
+ON fc.category_id = c.category_id
+WHERE c.name = %s AND f.release_year BETWEEN %s AND %s"""
+
+count_genres_years_search = """
+SELECT count(*) FROM sakila.film as f
 JOIN sakila.film_category as fc
 ON f.film_id = fc.film_id
 JOIN sakila.category as c
@@ -19,8 +30,24 @@ JOIN sakila.category as c
 ON fc.category_id = c.category_id
 WHERE c.name = %s"""
 
+count_genres_search = """
+SELECT count(*) FROM sakila.film as f
+JOIN sakila.film_category as fc
+ON f.film_id = fc.film_id
+JOIN sakila.category as c
+ON fc.category_id = c.category_id
+WHERE c.name = %s"""
+
 years_search = """
 SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM sakila.film as f
+JOIN sakila.film_category as fc
+ON f.film_id = fc.film_id
+JOIN sakila.category as c
+ON fc.category_id = c.category_id
+WHERE f.release_year BETWEEN %s AND %s"""
+
+count_years_search = """
+SELECT count(*) FROM sakila.film as f
 JOIN sakila.film_category as fc
 ON f.film_id = fc.film_id
 JOIN sakila.category as c
