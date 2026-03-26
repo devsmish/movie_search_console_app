@@ -29,7 +29,7 @@ def main():
             print("App closed. Goodbye!")
             break
         else:
-            print("Invalid choice. Please try again.")
+            print("\033[31mInvalid choice. Please try again.\033[0m")
 
     cursor.close()
     connection.close()

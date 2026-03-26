@@ -27,6 +27,33 @@ log_example_gy = {
     "query_key": "Games_2005_2010"
 }
 
+log_example_genre = {
+    "timestamp": "2026-03-26T16:54:18",
+    "search_type": "genre",
+    "params": {
+        "genres": "Comedy"
+ },
+    "results_count": 250,
+    "duration_ms": 250,
+    "success": True,
+    "query_key": "Comedy"
+}
+
+log_example_years = {
+    "timestamp": "2026-03-26T16:54:18",
+    "search_type": "genres-years",
+    "params": {
+        "years": {
+            "start_year": 1990,
+            "end_year": 2025,
+        }
+ },
+    "results_count": 250,
+    "duration_ms": 250,
+    "success": False,
+    "query_key": "1996_2001"
+}
+
 top5_queries = [
     {
         "$group": {
