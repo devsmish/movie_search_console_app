@@ -1,4 +1,4 @@
-from app.sql_connection import keywords_search, list_genres, range_years, combined_search
+from app.sql_connection import keywords_search, list_genres, range_years, combined_search, years_search, genres_search
 from app.mongo_connection import top5_requests, last5_requests
 import datetime
 
@@ -7,19 +7,25 @@ def search_menu(cursor, mongo_collection):
     while True:
         print("""
 ========================МЕНЮ ПОИСКА=========================
-Выберите критерий для поиска фильма (1, 2 или 0):
+Выберите критерий для поиска фильма (1, 2, 3, 4 или 0):
 1. Поиск по ключевому слову.
-2. Поиск по жанру или году выпуска.
+2. Поиск по жанру.
+3. Поиск по диапазону годов.
+4. Поиск по жанру и диапазону годов.
 0. Вернуться в предыдущее меню.""")
         search_choice = input("Enter your criterion: ")
         if search_choice == "1":
-            get_keyword(cursor, mongo_collection)
+            keyword_flow(cursor, mongo_collection)
         elif search_choice == "2":
-            selection_genre(cursor, mongo_collection)
+            genres_flow(cursor, mongo_collection)
+        elif search_choice == "3":
+            years_flow(cursor, mongo_collection)
+        elif search_choice == "4":
+            combined_flow(cursor, mongo_collection)
         elif search_choice == "0":
             break
         else:
-            print("Invalid criterion. Please try again.")
+            print("\033[31mInvalid criterion. Please try again.\033[0m")
 
 def stats_menu(mongo_collection):
     while True:
@@ -37,8 +43,50 @@ def stats_menu(mongo_collection):
         elif statistic_choice == "0":
             break
         else:
-            print("Invalid criterion. Please try again.")
+            print("\033[31mInvalid criterion. Please try again.\033[0m")
 
+def execute_search(search_func, mongo_collection, search_type, params):
+    start_time = datetime.datetime.now()
+    results = search_func()
+    end_time = datetime.datetime.now()
+    duration = (end_time - start_time).total_seconds() * 1000
+
+    print_results(results)
+
+    log_request(
+        mongo_collection,
+        search_type,
+        params,
+        len(results),
+        duration
+    )
+
+def build_query_key(search_type, params):
+    if search_type == "keyword":
+        return f"{search_type}_{params['keyword']}"
+
+    if search_type == "genre":
+        return f"{search_type}_{params['genre']}"
+
+    if search_type == "years":
+        return f"{search_type}_{params['start_year']}_{params['end_year']}"
+
+    if search_type == "genre-years":
+        return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
+
+def log_request(mongo_collection, search_type, params, total, duration):
+
+    mongo_collection.insert_one(
+        {
+        "timestamp": datetime.datetime.now(),
+        "search_type": search_type,
+        "params": params,
+        "results_count": total,
+        "duration_ms": duration,
+        "success": False if total == 0 else True,
+        "query_key": build_query_key(search_type, params)
+    }
+    )
 
 def input_keyword():
     print("""
@@ -47,148 +95,157 @@ def input_keyword():
 
     return input("Enter your keyword: ")
 
-def search_by_keyword(cursor, keyword):
-    return keywords_search(keyword, cursor)
-
-def log_keyword_search(mongo_collection, keyword, total, duration):
-    mongo_collection.insert_one(
-        {
-            "timestamp": datetime.datetime.now(),
-            "search_type": "keyword",
-            "params": {
-                "keyword": keyword,
-            },
-            "results_count": total,
-            "duration_ms": duration,
-            "success": True,
-            "query_key": keyword
-        }
-    )
-
-def print_keyword_results(results):
-    if not results:
-        print("Ничего не найдено")
-        return
-    for num, row in enumerate(results, start=1):
-        print(f"{num}. {row}")
-
-def get_keyword(cursor, mongo_collection):
-    while True:
-        keyword = input_keyword()
-
-        if keyword == "":
-            print("Пустой выбор. Попробуйте снова")
-            continue
-
-        if keyword == "0":
-            break
-
-        start_time = datetime.datetime.now()
-        results = search_by_keyword(cursor, keyword)
-        end_time = datetime.datetime.now()
-
-        duration = (end_time - start_time).total_seconds() * 1000
-
-        print_keyword_results(results)
-
-        log_keyword_search(
-            mongo_collection,
-            keyword,
-            len(results),
-            duration
-        )
-
-def show_years(genre, cursor):
-    result = range_years(genre, cursor)
-    for row in result:
-        print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
-
-def selection_genre(cursor, mongo_collection):
-    while True:
-        print("""
-===================ВЫБОР ЖАНРА ИЗ СПИСКА====================
-Выберите жанр по коду или названию из списка либо 0, чтобы вернуться в предыдущее меню.""")
-        genres = list_genres(cursor)
-        genre_names = [genre["name"] for genre in genres]
-        for name in genre_names:
-            print(name)
-        genre_choice = input("Choice your genre: ")
-        if genre_choice == "0":
-            break
-        elif genre_choice not in genre_names:
-            print("Invalid genre. Please try again.")
-        else:
-            show_years(genre_choice, cursor)
-            input_year(cursor, genre_choice, mongo_collection)
-
-def get_year_range():
-    print("""
-=======================ДИАПАЗОН ГОДОВ=======================
-0. Вернуться в предыдущее меню.""")
-
-    try:
-        start_year = int(input("Enter your start year: "))
-        end_year = int(input("Enter your end year: "))
-    except ValueError:
-        print("Введите корректные числа")
-        return None, None
-
-    current_year = datetime.datetime.now().year
-
-    if start_year > end_year:
-        print("Start year cannot be greater than end year")
-        return None, None
-
-    if start_year <= 1900 or end_year > current_year:
-        print("Invalid year. Please try again.")
-        return None, None
-
-    return start_year, end_year
-
-def print_genre_results(results):
+def print_results(results):
     if not results:
         print("Ничего не найдено")
         return
     for num, row in enumerate(results, start=1):
         print(f"{num}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}, {row['description']}")
 
-def log_genre_years_search(mongo_collection, genre, start_year, end_year, total, duration):
-    mongo_collection.insert_one(
-        {
-            "timestamp": datetime.datetime.now(),
-            "search_type": "genres-years",
-            "params": {
-                "genres": genre,
-                "years": {
-                    "start_year": start_year,
-                    "end_year": end_year,
-                }
-            },
-            "results_count": total,
-            "duration_ms": duration,
-            "success": True,
-            "query_key": f"{genre}_{start_year}_{end_year}"
+def keyword_flow(cursor, mongo_collection):
+    while True:
+        keyword = input_keyword()
+        if keyword == "":
+            print("\033[31mПустой выбор. Попробуйте снова\033[0m")
+            continue
+        if keyword == "0":
+            break
+        execute_search(
+            search_func=lambda: keywords_search(keyword, cursor),
+            mongo_collection=mongo_collection,
+            search_type="keyword",
+            params={"keyword": keyword}
+        )
+def get_genres(cursor):
+    while True:
+        print("""
+===================ВЫБОР ЖАНРА ИЗ СПИСКА====================
+Выберите жанр по коду или названию из списка либо 0, чтобы вернуться в предыдущее меню.""")
+        genres = list_genres(cursor)
+        genre_names = {genre['category_id']: genre["name"] for genre in genres}
+        for num, name in genre_names.items():
+            print(f"{num}. {name}")
+        choice = input("Your choice: ").strip()
+        if choice == "0":
+            return None
+        if choice.isdigit():
+            genre = genre_names.get(int(choice))
+            if genre:
+                return genre
+        else:
+            for name in genre_names.values():
+                if choice.lower() == name.lower():
+                    return name
+        print("\033[31mInvalid genre. Try again.\033[0m")
+
+def genres_flow(cursor, mongo_collection):
+    while True:
+        genre = get_genres(cursor)
+        if genre is None:
+            break
+        execute_search(
+            search_func=lambda: genres_search(cursor, genre),
+            mongo_collection=mongo_collection,
+            search_type="genre",
+            params={"genre": genre}
+        )
+
+def normalize_year_input(year):
+    current_year = datetime.datetime.now().year % 100  # последние 2 цифры
+
+    if isinstance(year, str):
+        year = year.strip()
+        if len(year) == 2 and year.isdigit():
+            year_int = int(year)
+        else:
+            return int(year)
+    else:
+        year_int = year
+
+    if year_int <= current_year:
+        return 2000 + year_int
+    else:
+        return 1900 + year_int
+
+def show_years(cursor):
+    result = range_years(cursor)
+    print(result)
+    for row in result:
+        print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
+
+def get_year_range(min_year, max_year):
+    user_input = input(
+        f"Введите год или диапазон ({min_year}-{max_year}): "
+    ).strip()
+    if not user_input:
+        return None
+    try:
+        if "-" in user_input:
+            start, end = user_input.split("-")
+            start_year = normalize_year_input(start)
+            end_year = normalize_year_input(end)
+        else:
+            year = normalize_year_input(user_input)
+            start_year = end_year = year
+        if start_year > end_year:
+            print("\033[31mStart year cannot be greater than end year!\033[0m")
+            return None, None
+        if start_year <= 1900 or end_year > datetime.datetime.now().year:
+            print("\033[31mInvalid year. Please try again.\033[0m")
+            return None, None
+        return {
+            "years": {
+                "start_year": start_year,
+                "end_year": end_year
+            }
         }
+    except ValueError:
+        print("\033[31mВведите корректные числа\033[0m")
+        return None
+
+def years_flow(cursor, mongo_collection):
+    print("""
+=======================ДИАПАЗОН ГОДОВ=======================
+Выберите год или диапазон годов либо 0 чтобы вернуться в предыдущее меню.""")
+    min_year = 1990
+    max_year = datetime.datetime.now().year
+    show_years(cursor)
+    params = get_year_range(min_year, max_year)
+    flat_params = {
+        "start_year": params["years"]["start_year"],
+        "end_year": params["years"]["end_year"]
+    }
+    if params is None:
+        return
+    execute_search(
+        search_func=lambda: years_search(
+            cursor,
+            params["years"]["start_year"],
+            params["years"]["end_year"]
+        ),
+        mongo_collection=mongo_collection,
+        search_type="years",
+        params=flat_params
     )
 
-def input_year(cursor, genre_choice, mongo_collection):
-    start_year, end_year = get_year_range()
-
-    if start_year is None:
+def combined_flow(cursor, mongo_collection):
+    genre = get_genres(cursor)
+    if not genre:
         return
 
-    start_time = datetime.datetime.now()
-    results = combined_search(cursor, genre_choice, start_year, end_year)
-    end_time = datetime.datetime.now()
-    duration = (end_time - start_time).total_seconds() * 1000
+    params_years = get_year_range(1900, datetime.datetime.now().year)
+    start_year = params_years["years"]["start_year"]
+    end_year = params_years["years"]["end_year"]
+    if not start_year:
+        return
 
-    print_genre_results(results)
-
-    log_genre_years_search(
-        mongo_collection,
-        genre_choice,
-        start_year,
-        end_year,
-        len(results),
-        duration
+    execute_search(
+        search_func=lambda: combined_search(cursor, genre, start_year, end_year),
+        mongo_collection=mongo_collection,
+        search_type="genre-years",
+        params={
+            "genre": genre,
+            "start_year": start_year,
+            "end_year": end_year
+        }
     )
