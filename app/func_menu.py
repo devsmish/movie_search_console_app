@@ -210,34 +210,45 @@ def show_years(cursor):
         print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
 
 def get_year_range(min_year, max_year):
-    user_input = input(f"Введите год или диапазон ({min_year}-{max_year}): ").strip()
-    if not user_input:
-        return None
-    try:
-        user_input = user_input.replace(" ", "-")
-        user_input = user_input.replace("/", "-")
-        if "-" in user_input:
-            start, end = user_input.split("-")
-            start_year = normalize_year_input(start)
-            end_year = normalize_year_input(end)
-        else:
-            year = normalize_year_input(user_input)
-            start_year = end_year = year
-        if start_year > end_year:
-            print("\033[31mStart year cannot be greater than end year!\033[0m")
-            return None, None
-        if start_year <= 1900 or end_year > datetime.datetime.now().year:
-            print("\033[31mInvalid year. Please try again.\033[0m")
-            return None, None
-        return {
-            "years": {
-                "start_year": start_year,
-                "end_year": end_year
+    while True:
+        user_input = input(f"Введите год или диапазон ({min_year}-{max_year}) или 0 для выхода: ").strip()
+
+        if user_input == "0":
+            return None
+
+        if not user_input:
+            print("\033[31mПустой ввод\033[0m")
+            continue
+
+        try:
+            user_input = user_input.replace(" ", "-")
+            user_input = user_input.replace("/", "-")
+            if "-" in user_input:
+                parts = user_input.split("-")
+                if len(parts) != 2:
+                    raise ValueError
+
+                start = normalize_year_input(parts[0])
+                end = normalize_year_input(parts[1])
+            else:
+                year = normalize_year_input(user_input)
+                start = end = year
+
+            if start > end:
+                print("\033[31mStart year cannot be greater than end year!\033[0m")
+                continue
+
+            if start < min_year or end > max_year:
+                print("\033[31mГод вне допустимого диапазона\033[0m")
+                continue
+
+            return {
+                "start_year": start,
+                "end_year": end
             }
-        }
-    except ValueError:
-        print("\033[31mВведите корректные числа\033[0m")
-        return None
+
+        except ValueError:
+            print("\033[31mВведите корректный формат (например: 2000-2010 или 2000 2010)\033[0m")
 
 def years_flow(cursor, mongo_collection):
     print("""
@@ -249,19 +260,15 @@ def years_flow(cursor, mongo_collection):
     params = get_year_range(min_year, max_year)
     if params is None:
         return
-    flat_params = {
-        "start_year": params["years"]["start_year"],
-        "end_year": params["years"]["end_year"]
-    }
     execute_search(
         search_func=lambda: years_search(
             cursor,
-            params["years"]["start_year"],
-            params["years"]["end_year"]
+            params["start_year"],
+            params["end_year"]
         ),
         mongo_collection=mongo_collection,
         search_type="years",
-        params=flat_params
+        params=params
     )
 
 def combined_flow(cursor, mongo_collection):
@@ -270,10 +277,11 @@ def combined_flow(cursor, mongo_collection):
         return
 
     params_years = get_year_range(1900, datetime.datetime.now().year)
-    start_year = params_years["years"]["start_year"]
-    end_year = params_years["years"]["end_year"]
-    if not start_year:
+    if not params_years:
         return
+
+    start_year = params_years["start_year"]
+    end_year = params_years["end_year"]
 
     execute_search(
         search_func=lambda: combined_search(cursor, genre, start_year, end_year),
