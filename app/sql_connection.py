@@ -13,6 +13,13 @@ def get_connection():
         cursorclass=DictCursor
     )
 
+def check_mysql(connection):
+    try:
+        connection.ping(reconnect=True)
+        print("MySQL OK")
+    except Exception as e:
+        raise Exception(f"MySQL connection error: {e}")
+
 def keywords_search(keyword, cursor):
     cursor.execute(keyword_query, (f"%{keyword}%",))
     return cursor.fetchall()

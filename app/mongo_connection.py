@@ -8,6 +8,14 @@ def get_mongo_collection():
     db = client[Config.MONGO_DATABASE]
     return db[Config.MONGO_COLLECTION]
 
+def check_mongo(collection):
+    try:
+        client = collection.database.client
+        client.admin.command("ping")
+        print("MongoDB OK")
+    except Exception as e:
+        raise Exception(f"MongoDB error: {e}")
+
 def top5_requests(mongo_collection):
     result = mongo_collection.aggregate(top5_queries)
     for row in result:

@@ -1,14 +1,22 @@
 from app.func_menu import search_menu, stats_menu
-from app.sql_connection import get_connection
-from app.mongo_connection import get_mongo_collection
+from app.sql_connection import get_connection, check_mysql
+from app.mongo_connection import get_mongo_collection, check_mongo
 
 
 def main():
     print("Movie Search App started")
-    connection = get_connection()
-    cursor = connection.cursor()
 
-    mongo_collection = get_mongo_collection()
+    try:
+        connection = get_connection()
+        check_mysql(connection)
+
+        cursor = connection.cursor()
+
+        mongo_collection = get_mongo_collection()
+        check_mongo(mongo_collection)
+    except Exception as e:
+        print(f"\033[31mStartup error: {e}\033[0m")
+        return
 
     print("""
 =========================SEARCH APP=========================""")
