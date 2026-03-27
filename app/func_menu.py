@@ -56,7 +56,7 @@ def execute_search(search_func, mongo_collection, search_type, params):
     end_time = datetime.datetime.now()
     duration = (end_time - start_time).total_seconds() * 1000
 
-    print_results(results)
+    print_results_paginated(results)
 
     log_request(
         mongo_collection,
@@ -100,12 +100,43 @@ def input_keyword():
 
     return input("Enter your keyword: ")
 
-def print_results(results):
-    if not results:
+def print_results_paginated(results, page_size=10):
+    total = len(results)
+    if total == 0:
         print("Ничего не найдено")
         return
-    for num, row in enumerate(results, start=1):
-        print(f"{num}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}, {row['description']}")
+    print(f"\nНайдено результатов: {total}")
+
+    current_page = 0
+    total_pages = (total - 1) // page_size + 1
+
+    while True:
+        start = current_page * page_size
+        end = start + page_size
+        page_results = results[start:end]
+        print(f"\n--- Страница {current_page + 1} из {total_pages} ---")
+        for i, row in enumerate(page_results, start=start + 1):
+            print(f"{i}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}")
+
+        nav = []
+        if current_page > 0:
+            nav.append("[p] Назад")
+        if current_page < total_pages - 1:
+            nav.append("[n] Вперед")
+        nav.append("[q] Выход")
+        print("\n" + " | ".join(nav))
+
+        choice = input("Ваш выбор: ").strip().lower()
+
+        if choice == "n" and current_page < total_pages - 1:
+            current_page += 1
+        elif choice == "p" and current_page > 0:
+            current_page -= 1
+        elif choice == "q":
+            print("Выход из просмотра результатов")
+            break
+        else:
+            print("\033[31mНедоступная команда\033[0m")
 
 def keyword_flow(cursor, mongo_collection):
     while True:
