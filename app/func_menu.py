@@ -47,7 +47,12 @@ def stats_menu(mongo_collection):
 
 def execute_search(search_func, mongo_collection, search_type, params):
     start_time = datetime.datetime.now()
-    results = search_func()
+    try:
+        results = search_func()
+    except Exception as e:
+        print(f"Ошибка поиска: {e}")
+        results = []
+
     end_time = datetime.datetime.now()
     duration = (end_time - start_time).total_seconds() * 1000
 
@@ -71,7 +76,7 @@ def build_query_key(search_type, params):
     if search_type == "years":
         return f"{search_type}_{params['start_year']}_{params['end_year']}"
 
-    if search_type == "genre-years":
+    if search_type == "genre_years":
         return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
 
 def log_request(mongo_collection, search_type, params, total, duration):
@@ -174,12 +179,12 @@ def show_years(cursor):
         print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
 
 def get_year_range(min_year, max_year):
-    user_input = input(
-        f"Введите год или диапазон ({min_year}-{max_year}): "
-    ).strip()
+    user_input = input(f"Введите год или диапазон ({min_year}-{max_year}): ").strip()
     if not user_input:
         return None
     try:
+        user_input = user_input.replace(" ", "-")
+        user_input = user_input.replace("/", "-")
         if "-" in user_input:
             start, end = user_input.split("-")
             start_year = normalize_year_input(start)
@@ -211,12 +216,12 @@ def years_flow(cursor, mongo_collection):
     max_year = datetime.datetime.now().year
     show_years(cursor)
     params = get_year_range(min_year, max_year)
+    if params is None:
+        return
     flat_params = {
         "start_year": params["years"]["start_year"],
         "end_year": params["years"]["end_year"]
     }
-    if params is None:
-        return
     execute_search(
         search_func=lambda: years_search(
             cursor,
@@ -242,7 +247,7 @@ def combined_flow(cursor, mongo_collection):
     execute_search(
         search_func=lambda: combined_search(cursor, genre, start_year, end_year),
         mongo_collection=mongo_collection,
-        search_type="genre-years",
+        search_type="genre_years",
         params={
             "genre": genre,
             "start_year": start_year,
