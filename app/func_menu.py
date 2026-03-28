@@ -7,13 +7,19 @@ def search_menu(cursor, mongo_collection):
     while True:
         print("""
 ========================МЕНЮ ПОИСКА=========================
-Выберите критерий для поиска фильма (1, 2, 3, 4 или 0):
+Выберите критерий для поиска фильма (1, 2, 3, 4 или Q):
 1. Поиск по ключевому слову.
 2. Поиск по жанру.
 3. Поиск по диапазону годов.
 4. Поиск по жанру и диапазону годов.
-0. Вернуться в предыдущее меню.""")
-        search_choice = input("Enter your criterion: ")
+Q. Вернуться в предыдущее меню.""")
+        search_choice = safe_input(
+            "Enter your search criterion: ",
+            interrupt_msg="\033[31mThe user interrupted the search menu!\033[0m\nReturn to the main menu"
+        )
+        if search_choice is None:
+            return
+
         if search_choice == "1":
             keyword_flow(cursor, mongo_collection)
         elif search_choice == "2":
@@ -22,7 +28,7 @@ def search_menu(cursor, mongo_collection):
             years_flow(cursor, mongo_collection)
         elif search_choice == "4":
             combined_flow(cursor, mongo_collection)
-        elif search_choice == "0":
+        elif search_choice.lower() == "q":
             break
         else:
             print("\033[31mInvalid criterion. Please try again.\033[0m")
@@ -31,74 +37,99 @@ def stats_menu(mongo_collection):
     while True:
         print("""
 ======================МЕНЮ СТАТИСТИКИ=======================
-Выберите вариант статистики для просмотра (1, 2 или 0):
+Выберите вариант статистики для просмотра (1, 2 или Q):
 1. ТОП5 поисковых запросов.
 2. 5 последних поисковых запросов.
-0. Вернуться в предыдущее меню.""")
-        statistic_choice = input("Enter your statistic: ")
+Q. Вернуться в предыдущее меню.""")
+        statistic_choice = safe_input(
+            "Choice your statistic report: ",
+            interrupt_msg="\033[31mThe user interrupted the statistic menu!\033[0m\nReturn to the main menu"
+        )
+        if statistic_choice is None:
+            return
+
         if statistic_choice == "1":
             top5_requests(mongo_collection)
         elif statistic_choice == "2":
             last5_requests(mongo_collection)
-        elif statistic_choice == "0":
+        elif statistic_choice.lower() == "q":
             break
         else:
             print("\033[31mInvalid criterion. Please try again.\033[0m")
 
 def execute_search(search_func, mongo_collection, search_type, params):
     start_time = datetime.datetime.now()
+    success = True
+    results = []
+
     try:
         results = search_func()
     except Exception as e:
-        print(f"Ошибка поиска: {e}")
-        results = []
+        print(f"EXECUTE_SEARCH: Ошибка поиска в БД или в запросе: {e}")
+        success = False
 
     end_time = datetime.datetime.now()
     duration = (end_time - start_time).total_seconds() * 1000
 
-    print_results_paginated(results)
+    try:
+        print_results_paginated(results)
+    except Exception as e:
+        print(f"EXECUTE_SEARCH: Ошибка вывода результатов: {e}")
 
-    log_request(
-        mongo_collection,
-        search_type,
-        params,
-        len(results),
-        duration
-    )
+    try:
+        log_request(
+            mongo_collection,
+            search_type,
+            params,
+            len(results),
+            duration,
+            success
+        )
+    except Exception as e:
+        print(f"EXECUTE_SEARCH: Ошибка логирования: {e}")
 
 def build_query_key(search_type, params):
-    if search_type == "keyword":
-        return f"{search_type}_{params['keyword']}"
+    try:
+        if search_type == "keyword":
+            return f"{search_type}_{params['keyword']}"
+        if search_type == "genre":
+            return f"{search_type}_{params['genre']}"
+        if search_type == "years":
+            return f"{search_type}_{params['start_year']}_{params['end_year']}"
+        if search_type == "genre_years":
+            return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
+    except KeyError as e:
+        print(f"UNKNOWN_QUERY: Ошибка в ключах: {e}")
+        return "unknown_query"
 
-    if search_type == "genre":
-        return f"{search_type}_{params['genre']}"
-
-    if search_type == "years":
-        return f"{search_type}_{params['start_year']}_{params['end_year']}"
-
-    if search_type == "genre_years":
-        return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
-
-def log_request(mongo_collection, search_type, params, total, duration):
-
-    mongo_collection.insert_one(
-        {
-        "timestamp": datetime.datetime.now(),
-        "search_type": search_type,
-        "params": params,
-        "results_count": total,
-        "duration_ms": duration,
-        "success": False if total == 0 else True,
-        "query_key": build_query_key(search_type, params)
-    }
-    )
+def log_request(mongo_collection, search_type, params, total, duration, success):
+    try:
+        mongo_collection.insert_one(
+            {
+            "timestamp": datetime.datetime.now(),
+            "search_type": search_type,
+            "params": params,
+            "results_count": total,
+            "duration_ms": duration,
+            "success": success,
+            "query_key": build_query_key(search_type, params)
+        }
+        )
+    except Exception as e:
+        print("LOG_REQUEST: Ошибка соединения или сформирован некорректный документ")
+        print(f"Ошибка записи в MongoDB: {e}")
 
 def input_keyword():
     print("""
 ====================ВВОД КЛЮЧЕВОГО СЛОВА====================
-Введите слово или фразу для поиска фильма либо 0, чтобы вернуться в предыдущее меню.""")
-
-    return input("Enter your keyword: ")
+Введите слово или фразу для поиска фильма либо [q], чтобы вернуться в предыдущее меню.""")
+    input_word = safe_input(
+        "Enter your keyword: ",
+        interrupt_msg="INPUT_KEYWORD: \033[31mThe user interrupted the program!\033[0m\n"
+    )
+    if input_word is None:
+        return None
+    return input_word
 
 def print_results_paginated(results, page_size=10):
     total = len(results)
@@ -116,7 +147,10 @@ def print_results_paginated(results, page_size=10):
         page_results = results[start:end]
         print(f"\n--- Страница {current_page + 1} из {total_pages} ---")
         for i, row in enumerate(page_results, start=start + 1):
-            print(f"{i}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}")
+            try:
+                print(f"{i}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}")
+            except Exception as e:
+                print(f"Ошибка отображения строки: {e}")
 
         nav = []
         if current_page > 0:
@@ -141,28 +175,43 @@ def print_results_paginated(results, page_size=10):
 def keyword_flow(cursor, mongo_collection):
     while True:
         keyword = input_keyword()
+        if keyword is None:
+            print("Возврат в меню...")
+            break
         if keyword == "":
             print("\033[31mПустой выбор. Попробуйте снова\033[0m")
             continue
-        if keyword == "0":
+        if keyword == "q":
             break
+
         execute_search(
             search_func=lambda: keywords_search(keyword, cursor),
             mongo_collection=mongo_collection,
             search_type="keyword",
             params={"keyword": keyword}
         )
+
 def get_genres(cursor):
     while True:
         print("""
 ===================ВЫБОР ЖАНРА ИЗ СПИСКА====================
-Выберите жанр по коду или названию из списка либо 0, чтобы вернуться в предыдущее меню.""")
-        genres = list_genres(cursor)
-        genre_names = {genre['category_id']: genre["name"] for genre in genres}
+Выберите жанр по коду или названию из списка либо [q], чтобы вернуться в предыдущее меню.""")
+        try:
+            genres = list_genres(cursor)
+        except Exception as e:
+            print(f"GET_GENRES: Ошибка загрузки жанров: {e}")
+            return None
+        try:
+            genre_names = {genre['category_id']: genre["name"] for genre in genres}
+        except KeyError as e:
+            print(f"GET_GENRES: Ошибка структуры данных: {e}")
+            return None
         for num, name in genre_names.items():
             print(f"{num}. {name}")
-        choice = input("Your choice: ").strip()
-        if choice == "0":
+        choice = input("""
+Select a genre by number or title. 
+Press [q] to return to the previous menu: """).strip()
+        if choice == "q":
             return None
         if choice.isdigit():
             genre = genre_names.get(int(choice))
@@ -194,7 +243,10 @@ def normalize_year_input(year):
         if len(year) == 2 and year.isdigit():
             year_int = int(year)
         else:
-            return int(year)
+            try:
+                return int(year)
+            except ValueError:
+                raise ValueError("\033[31mIncorrect year!\033[0m")
     else:
         year_int = year
 
@@ -204,16 +256,19 @@ def normalize_year_input(year):
         return 1900 + year_int
 
 def show_years(cursor):
-    result = range_years(cursor)
-    print(result)
+    try:
+        result = range_years(cursor)
+    except Exception as e:
+        print(f"Ошибка получения диапазона лет: {e}")
+        return
     for row in result:
         print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
 
 def get_year_range(min_year, max_year):
     while True:
-        user_input = input(f"Введите год или диапазон ({min_year}-{max_year}) или 0 для выхода: ").strip()
+        user_input = input(f"Введите год или диапазон ({min_year}-{max_year}) или [q] для выхода: ").strip()
 
-        if user_input == "0":
+        if user_input == "q":
             return None
 
         if not user_input:
@@ -248,12 +303,12 @@ def get_year_range(min_year, max_year):
             }
 
         except ValueError:
-            print("\033[31mВведите корректный формат (например: 2000-2010 или 2000 2010)\033[0m")
+            print("\033[31mВведите корректный формат (например: 2000-2010, 2000/2010 или 2000 2010)\033[0m")
 
 def years_flow(cursor, mongo_collection):
     print("""
 =======================ДИАПАЗОН ГОДОВ=======================
-Выберите год или диапазон годов либо 0 чтобы вернуться в предыдущее меню.""")
+Выберите год или диапазон годов либо [q] чтобы вернуться в предыдущее меню.""")
     min_year = 1990
     max_year = datetime.datetime.now().year
     show_years(cursor)
@@ -293,3 +348,17 @@ def combined_flow(cursor, mongo_collection):
             "end_year": end_year
         }
     )
+
+def safe_input(prompt, interrupt_msg=None, allow_empty=True):
+    try:
+        value = input(prompt).strip()
+
+        if not allow_empty and value == "":
+            print("\033[31mПустой ввод запрещён\033[0m")
+            return None
+
+        return value
+
+    except KeyboardInterrupt:
+        print(f"\033[31m{interrupt_msg or 'Ввод прерван пользователем'}\033[0m")
+        return None

@@ -1,6 +1,6 @@
-from app.func_menu import search_menu, stats_menu
-from app.sql_connection import get_connection, check_mysql
-from app.mongo_connection import get_mongo_collection, check_mongo
+from app.func_menu import search_menu, stats_menu, safe_input
+from app.sql_connection import get_connection
+from app.mongo_connection import get_mongo_collection
 
 
 def main():
@@ -8,12 +8,8 @@ def main():
 
     try:
         connection = get_connection()
-        check_mysql(connection)
-
         cursor = connection.cursor()
-
         mongo_collection = get_mongo_collection()
-        check_mongo(mongo_collection)
     except Exception as e:
         print(f"\033[31mStartup error: {e}\033[0m")
         return
@@ -24,16 +20,22 @@ def main():
     while True:
         print("""
 ========================ГЛАВНОЕ МЕНЮ========================
-Выберите опцию, которой вы хотели бы воспользоваться (1, 2 или 0):
+Выберите опцию, которой вы хотели бы воспользоваться (1, 2 или Q):
 1. Если хотите найти фильм.
 2. Если хотите посмотреть статистику поиска.
-0. Если хотите завершить программу.""")
-        initial_choice = input("Enter your option: ")
+Q. Если хотите завершить программу.""")
+        initial_choice = safe_input(
+            "Enter your option: ",
+            interrupt_msg="\033[31mThe user terminated the program!\033[0m\nThe program was closed."
+        )
+        if initial_choice is None:
+            return
+
         if initial_choice == "1":
             search_menu(cursor, mongo_collection)
         elif initial_choice == "2":
             stats_menu(mongo_collection)
-        elif initial_choice == "0":
+        elif initial_choice.lower() == "q":
             print("App closed. Goodbye!")
             break
         else:
