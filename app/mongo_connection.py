@@ -4,17 +4,14 @@ from app.mongo_queries import top5_queries, last5_queries
 
 
 def get_mongo_collection():
-    client = MongoClient(Config.MONGO_URI)
-    db = client[Config.MONGO_DATABASE]
-    return db[Config.MONGO_COLLECTION]
-
-def check_mongo(collection):
     try:
-        client = collection.database.client
-        client.admin.command("ping")
+        client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
+        db = client[Config.MONGO_DATABASE]
+        client.admin.command("ping")  # проверка
         print("MongoDB OK")
+        return db[Config.MONGO_COLLECTION]
     except Exception as e:
-        raise Exception(f"MongoDB error: {e}")
+        raise Exception(f"MongoDB connection error: {e}")
 
 def top5_requests(mongo_collection):
     result = mongo_collection.aggregate(top5_queries)

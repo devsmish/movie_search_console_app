@@ -5,18 +5,20 @@ from app.sql_queries import *
 
 
 def get_connection():
-    return pymysql.connect(
-        host=Config.MYSQL_HOST,
-        user=Config.MYSQL_USER,
-        password=Config.MYSQL_PASSWORD,
-        database=Config.MYSQL_DATABASE,
-        cursorclass=DictCursor
-    )
-
-def check_mysql(connection):
     try:
+        connection = pymysql.connect(
+            host=Config.MYSQL_HOST,
+            user=Config.MYSQL_USER,
+            password=Config.MYSQL_PASSWORD,
+            database=Config.MYSQL_DATABASE,
+            cursorclass=DictCursor
+        )
+
         connection.ping(reconnect=True)
+
         print("MySQL OK")
+        return connection
+
     except Exception as e:
         raise Exception(f"MySQL connection error: {e}")
 
@@ -26,10 +28,6 @@ def keywords_search(keyword, cursor):
 
 def list_genres(cursor):
     cursor.execute(genres_list)
-    return cursor.fetchall()
-
-def range_genres_years(genres, cursor):
-    cursor.execute(range_genres_years_query, (genres,))
     return cursor.fetchall()
 
 def combined_search(cursor, genre, start_year=1990, end_year=2025):
