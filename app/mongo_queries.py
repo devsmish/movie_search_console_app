@@ -1,4 +1,4 @@
-
+# log examples
 log_example_key = {
     "timestamp": "2026-03-25T15:34:00",
     "search_type": "keyword",
@@ -8,23 +8,21 @@ log_example_key = {
     "results_count": 3,
     "duration_ms": 340,
     "success": True,
-    "query_key": "JIN"
+    "query_key": "keyword_JIN"
 }
 
 log_example_gy = {
     "timestamp": "2026-03-26T16:54:18",
-    "search_type": "genres-years",
+    "search_type": "genre_years",
     "params": {
         "genres": "Action",
-        "years": {
-            "start_year": 1990,
-            "end_year": 2025,
-        }
+        "start_year": 1990,
+        "end_year": 2025
  },
     "results_count": 250,
     "duration_ms": 250,
     "success": False,
-    "query_key": "Games_2005_2010"
+    "query_key": "genres_years_Games_2005_2010"
 }
 
 log_example_genre = {
@@ -36,24 +34,23 @@ log_example_genre = {
     "results_count": 250,
     "duration_ms": 250,
     "success": True,
-    "query_key": "Comedy"
+    "query_key": "genre_Comedy"
 }
 
 log_example_years = {
     "timestamp": "2026-03-26T16:54:18",
-    "search_type": "genres-years",
+    "search_type": "years",
     "params": {
-        "years": {
-            "start_year": 1990,
-            "end_year": 2025,
-        }
+        "start_year": 1990,
+        "end_year": 2025
  },
     "results_count": 250,
     "duration_ms": 250,
     "success": False,
-    "query_key": "1996_2001"
+    "query_key": "years_1996_2001"
 }
 
+# db queries
 top5_queries = [
     {
         "$group": {
