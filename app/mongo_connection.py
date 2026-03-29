@@ -29,5 +29,5 @@ def last5_requests(mongo_collection):
     print("\nQuery Key                               | Search Type       | Results Count | Duration, ms")
     print("-" * 88)
     for row in result:
-        print(f"""
-{row['query_key']:<40}| {row['search_type']:<18}| {row['results_count']:<14}| {row['duration_ms']:>9.3f} ms""")
+        print(f"{row['query_key']:<40}| {row['search_type']:<18}| {row['results_count']:<14}|\
+{row['duration_ms']:>9.3f} ms")

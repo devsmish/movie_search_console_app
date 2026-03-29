@@ -147,14 +147,11 @@ def print_results_paginated(results, page_size=10):
         end = start + page_size
         page_results = results[start:end]
         print(f"""
-\n                        -------  Page  {current_page + 1}  of  {total_pages}  -------                        \n""")
-        print(f"#    | Film_ID | Title                             | Genre                | Release Year")
-        for i, row in enumerate(page_results, start=start + 1):
-            try:
-                print(f"""
-{i:<5}| {row['film_id']:<8}| {row['title']:<34}| {row['name']:<21}| {row['release_year']:>12}""")
-            except Exception as e:
-                print(f"Line display error: {e}")
+                            -------  Page  {current_page + 1}  of  {total_pages}  -------                      """)
+        print(f"\n#    | Film_ID | Title                             | Genre                | Release Year")
+        print("-" * 88)
+        for i, row in enumerate(page_results, start=1):
+            print(f"{i:<5}| {row['film_id']:<8}| {row['title']:<34}| {row['name']:<21}| {row['release_year']:>12}")
 
         nav = []
         if current_page > 0:
@@ -272,7 +269,7 @@ def show_years(cursor):
 def get_year_range(min_year, max_year):
     while True:
         user_input = input(f"""
-Enter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: """"").strip()
+Enter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: """).strip()
 
         if user_input == "q":
             return None
