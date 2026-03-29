@@ -15,15 +15,15 @@ def main():
         return
 
     print("""
-=========================SEARCH APP=========================""")
+====================================MOVIE SEARCH APP====================================""")
 
     while True:
         print("""
-========================ГЛАВНОЕ МЕНЮ========================
-Выберите опцию, которой вы хотели бы воспользоваться (1, 2 или Q):
-1. Если хотите найти фильм.
-2. Если хотите посмотреть статистику поиска.
-Q. Если хотите завершить программу.""")
+=======================================MAIN MENU========================================
+Select the option You would like to use (1, 2 or Q):
+1. Searching for a movie in the library.
+2. View Your search history or popular queries.
+Q. Exit the program.""")
         initial_choice = safe_input(
             "Enter your option: ",
             interrupt_msg="\033[31mThe user terminated the program!\033[0m\nThe program was closed."

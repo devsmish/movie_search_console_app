@@ -6,13 +6,14 @@ import datetime
 def search_menu(cursor, mongo_collection):
     while True:
         print("""
-========================МЕНЮ ПОИСКА=========================
-Выберите критерий для поиска фильма (1, 2, 3, 4 или Q):
-1. Поиск по ключевому слову.
-2. Поиск по жанру.
-3. Поиск по диапазону годов.
-4. Поиск по жанру и диапазону годов.
-Q. Вернуться в предыдущее меню.""")
+=====================================SEARCH MENU========================================
+Select criterion to search for a movie (1, 2, 3, 4 or Q):
+1. Search by keyword.
+2. Search by genre.
+3. Search by year or range of years.
+4. Search by genre and year range.
+Q. Return to the previous menu.""")
+
         search_choice = safe_input(
             "Enter your search criterion: ",
             interrupt_msg="\033[31mThe user interrupted the search menu!\033[0m\nReturn to the main menu"
@@ -36,11 +37,11 @@ Q. Вернуться в предыдущее меню.""")
 def stats_menu(mongo_collection):
     while True:
         print("""
-======================МЕНЮ СТАТИСТИКИ=======================
-Выберите вариант статистики для просмотра (1, 2 или Q):
-1. ТОП5 поисковых запросов.
-2. 5 последних поисковых запросов.
-Q. Вернуться в предыдущее меню.""")
+===================================STATISTICS MENU======================================
+Select a report option to view (1, 2 or Q):
+1. TOP-5 search queries.
+2. 5 most recent search queries.
+Q. Return to the previous menu.""")
         statistic_choice = safe_input(
             "Choice your statistic report: ",
             interrupt_msg="\033[31mThe user interrupted the statistic menu!\033[0m\nReturn to the main menu"
@@ -65,7 +66,7 @@ def execute_search(search_func, mongo_collection, search_type, params):
     try:
         results = search_func()
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Ошибка поиска в БД или в запросе: {e}")
+        print(f"EXECUTE_SEARCH: Error searching in the database or in the query: {e}")
         success = False
 
     end_time = datetime.datetime.now()
@@ -74,7 +75,7 @@ def execute_search(search_func, mongo_collection, search_type, params):
     try:
         print_results_paginated(results)
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Ошибка вывода результатов: {e}")
+        print(f"EXECUTE_SEARCH: Results output error: {e}")
 
     try:
         log_request(
@@ -86,7 +87,7 @@ def execute_search(search_func, mongo_collection, search_type, params):
             success
         )
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Ошибка логирования: {e}")
+        print(f"EXECUTE_SEARCH: Logging error: {e}")
 
 def build_query_key(search_type, params):
     try:
@@ -99,7 +100,7 @@ def build_query_key(search_type, params):
         if search_type == "genre_years":
             return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
     except KeyError as e:
-        print(f"UNKNOWN_QUERY: Ошибка в ключах: {e}")
+        print(f"UNKNOWN_QUERY: Error in keys: {e}")
         return "unknown_query"
 
 def log_request(mongo_collection, search_type, params, total, duration, success):
@@ -116,13 +117,13 @@ def log_request(mongo_collection, search_type, params, total, duration, success)
         }
         )
     except Exception as e:
-        print("LOG_REQUEST: Ошибка соединения или сформирован некорректный документ")
-        print(f"Ошибка записи в MongoDB: {e}")
+        print("LOG_REQUEST: Connection error or invalid document generated")
+        print(f"MongoDB write error: {e}")
 
 def input_keyword():
     print("""
-====================ВВОД КЛЮЧЕВОГО СЛОВА====================
-Введите слово или фразу для поиска фильма либо [q], чтобы вернуться в предыдущее меню.""")
+=====================================ENTER KEYWORD======================================
+Enter a word or phrase to search for a movie, or [q] to return to the previous menu.""")
     input_word = safe_input(
         "Enter your keyword: ",
         interrupt_msg="INPUT_KEYWORD: \033[31mThe user interrupted the program!\033[0m\n"
@@ -134,9 +135,9 @@ def input_keyword():
 def print_results_paginated(results, page_size=10):
     total = len(results)
     if total == 0:
-        print("Ничего не найдено")
+        print("Nothing found!")
         return
-    print(f"\nНайдено результатов: {total}")
+    print(f"\nResults found: {total}")
 
     current_page = 0
     total_pages = (total - 1) // page_size + 1
@@ -145,41 +146,44 @@ def print_results_paginated(results, page_size=10):
         start = current_page * page_size
         end = start + page_size
         page_results = results[start:end]
-        print(f"\n--- Страница {current_page + 1} из {total_pages} ---")
+        print(f"""
+\n                        -------  Page  {current_page + 1}  of  {total_pages}  -------                        \n""")
+        print(f"#    | Film_ID | Title                             | Genre                | Release Year")
         for i, row in enumerate(page_results, start=start + 1):
             try:
-                print(f"{i}. {row['film_id']} - {row['title']}, {row['name']}, {row['release_year']}")
+                print(f"""
+{i:<5}| {row['film_id']:<8}| {row['title']:<34}| {row['name']:<21}| {row['release_year']:>12}""")
             except Exception as e:
-                print(f"Ошибка отображения строки: {e}")
+                print(f"Line display error: {e}")
 
         nav = []
         if current_page > 0:
-            nav.append("[p] Назад")
+            nav.append("[p] Previous page")
         if current_page < total_pages - 1:
-            nav.append("[n] Вперед")
-        nav.append("[q] Выход")
+            nav.append("[n] Next page")
+        nav.append("[q] Exit")
         print("\n" + " | ".join(nav))
 
-        choice = input("Ваш выбор: ").strip().lower()
+        choice = input("Your choice: ").strip().lower()
 
         if choice == "n" and current_page < total_pages - 1:
             current_page += 1
         elif choice == "p" and current_page > 0:
             current_page -= 1
         elif choice == "q":
-            print("Выход из просмотра результатов")
+            print("Exit viewing results")
             break
         else:
-            print("\033[31mНедоступная команда\033[0m")
+            print("\033[31mUnavailable command\033[0m")
 
 def keyword_flow(cursor, mongo_collection):
     while True:
         keyword = input_keyword()
         if keyword is None:
-            print("Возврат в меню...")
+            print("Return to search menu")
             break
         if keyword == "":
-            print("\033[31mПустой выбор. Попробуйте снова\033[0m")
+            print("\033[31mEmpty selection. Try again.\033[0m")
             continue
         if keyword == "q":
             break
@@ -194,20 +198,21 @@ def keyword_flow(cursor, mongo_collection):
 def get_genres(cursor):
     while True:
         print("""
-===================ВЫБОР ЖАНРА ИЗ СПИСКА====================
-Выберите жанр по коду или названию из списка либо [q], чтобы вернуться в предыдущее меню.""")
+=============================SELECT A GENRE FROM THE LIST===============================
+Select a genre by number or title from the list or [q] to return to the previous menu.""")
         try:
             genres = list_genres(cursor)
         except Exception as e:
-            print(f"GET_GENRES: Ошибка загрузки жанров: {e}")
+            print(f"GET_GENRES: Error loading genres: {e}")
             return None
         try:
             genre_names = {genre['category_id']: genre["name"] for genre in genres}
         except KeyError as e:
-            print(f"GET_GENRES: Ошибка структуры данных: {e}")
+            print(f"GET_GENRES: Data structure error: {e}")
             return None
+        print(f"#   | Genre")
         for num, name in genre_names.items():
-            print(f"{num}. {name}")
+            print(f"{num:<4}| {name:<16}")
         choice = input("""
 Select a genre by number or title. 
 Press [q] to return to the previous menu: """).strip()
@@ -259,20 +264,21 @@ def show_years(cursor):
     try:
         result = range_years(cursor)
     except Exception as e:
-        print(f"Ошибка получения диапазона лет: {e}")
+        print(f"Error getting year range: {e}")
         return
     for row in result:
-        print(f"Вы можете указать диапазон годов от {row['min_year']} до {row['max_year']}")
+        print(f"You can specify a range of years from {row['min_year']} to {row['max_year']}")
 
 def get_year_range(min_year, max_year):
     while True:
-        user_input = input(f"Введите год или диапазон ({min_year}-{max_year}) или [q] для выхода: ").strip()
+        user_input = input(f"""
+Enter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: """"").strip()
 
         if user_input == "q":
             return None
 
         if not user_input:
-            print("\033[31mПустой ввод\033[0m")
+            print("\033[31mEmpty input. Try again.\033[0m")
             continue
 
         try:
@@ -294,7 +300,7 @@ def get_year_range(min_year, max_year):
                 continue
 
             if start < min_year or end > max_year:
-                print("\033[31mГод вне допустимого диапазона\033[0m")
+                print("\033[31mYear out of range\033[0m")
                 continue
 
             return {
@@ -303,14 +309,14 @@ def get_year_range(min_year, max_year):
             }
 
         except ValueError:
-            print("\033[31mВведите корректный формат (например: 2000-2010, 2000/2010 или 2000 2010)\033[0m")
+            print("\033[31mPlease enter the correct format (for example: 2000-2010, 2000/2010 or 2000 2010)\033[0m")
 
 def years_flow(cursor, mongo_collection):
     print("""
-=======================ДИАПАЗОН ГОДОВ=======================
-Выберите год или диапазон годов либо [q] чтобы вернуться в предыдущее меню.""")
+=====================================RANGE OF YEARS=====================================
+Select a year or range of years or [q] to return to the previous menu.""")
     min_year = 1990
-    max_year = datetime.datetime.now().year
+    max_year = datetime.datetime.now().year - 1
     show_years(cursor)
     params = get_year_range(min_year, max_year)
     if params is None:
@@ -354,11 +360,11 @@ def safe_input(prompt, interrupt_msg=None, allow_empty=True):
         value = input(prompt).strip()
 
         if not allow_empty and value == "":
-            print("\033[31mПустой ввод запрещён\033[0m")
+            print("\033[31mEmpty input is not allowed\033[0m")
             return None
 
         return value
 
     except KeyboardInterrupt:
-        print(f"\033[31m{interrupt_msg or 'Ввод прерван пользователем'}\033[0m")
+        print(f"\033[31m{interrupt_msg or 'Input interrupted by user'}\033[0m")
         return None
