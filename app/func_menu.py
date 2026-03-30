@@ -357,7 +357,6 @@ def safe_input(prompt, interrupt_msg=None, allow_empty=True):
         value = input(prompt).strip()
 
         if not allow_empty and value == "":
-            print("\033[31mEmpty input is not allowed\033[0m")
             return None
 
         return value

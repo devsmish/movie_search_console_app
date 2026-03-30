@@ -30,6 +30,10 @@ Q. Exit the program.""")
         )
         if initial_choice is None:
             return
+        if initial_choice == "":
+            print("\033[31mEmpty input is not allowed. Please try again.\033[0m")
+            continue
+
 
         if initial_choice == "1":
             search_menu(cursor, mongo_collection)
