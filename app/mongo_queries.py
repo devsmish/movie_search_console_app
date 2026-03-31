@@ -68,15 +68,19 @@ top5_queries = [
 
 last5_queries = [
   {
-    "$project": {
-      "_id": 0,
-      "params": 0
+    "$sort": {"timestamp": -1 }
+  },
+  {
+    "$group": {
+      "_id": "$query_key",
+      "doc": {"$first": "$$ROOT" }  # the most recent log for each key
     }
   },
   {
-    "$sort": {
-      "timestamp": -1
-    }
+    "$replaceRoot": {"newRoot": "$doc" } # replace the current document with the generated one
+  },
+  {
+    "$sort": {"timestamp": -1 }
   },
   {
     "$limit": 5
