@@ -1,7 +1,7 @@
 import pymysql
 from config import Config
 from pymysql.cursors import DictCursor
-from app.sql_queries import *
+from app.db.sql_queries import *
 
 
 def get_connection():
@@ -30,7 +30,7 @@ def list_genres(cursor):
     cursor.execute(genres_list)
     return cursor.fetchall()
 
-def combined_search(cursor, genre, start_year=1990, end_year=2025):
+def genre_years_search(cursor, genre, start_year=1990, end_year=2025):
     cursor.execute(genres_years_query, (genre, start_year, end_year,))
     return cursor.fetchall()
 

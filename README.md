@@ -47,23 +47,67 @@ non-relational databases, modular architecture, and CLI interaction design.
 
 ## 🏗 Project Structure
 
+The project has been refactored into a modular and scalable architecture, separating responsibilities across distinct layers. This improves readability, maintainability, and prepares the codebase for future extensions (such as OOP or API integration).
+
 ```bash
 app/
 │
-├── main.py                # Entry point of the application
+├── main.py                   # Application entry point
 │
-├── func_menu.py          # CLI menus, user interaction, flows
+├── db/                       # Data access layer (database interaction)
+│   ├── sql_connection.py     # MySQL connection setup
+│   ├── sql_queries.py        # SQL queries for movie search
+│   ├── mongo_connection.py   # MongoDB connection setup
+│   └── mongo_queries.py      # Aggregation pipelines for analytics
 │
-├── sql_connection.py     # MySQL connection and queries
-├── mongo_connection.py   # MongoDB connection and analytics
+├── menu/                     # CLI interface (user interaction layer)
+│   ├── main_menu.py          # Main application menu
+│   ├── search_menu.py        # Search options menu
+│   └── stats_menu.py         # Statistics menu
 │
-├── mongo_queries.py      # Aggregation pipelines for statistics
+├── flows/                    # Application flows (user scenarios)
+│   ├── keyword_flow.py       # Keyword search logic
+│   ├── genre_flow.py         # Genre-based search
+│   ├── years_flow.py         # Year/range search
+│   └── genre_years_flow.py   # Combined search (genre + years)
 │
-├── config.py             # Configuration (DB credentials, settings)
+├── services/                 # Business logic layer
+│   ├── search_service.py     # Search execution & orchestration
+│   ├── log_service.py        # Logging search requests (MongoDB)
+│   └── stats_service.py      # Statistics and reporting logic
+│
+├── utils/                    # Utility functions (helpers)
+│   ├── input_utils.py        # Safe input handling & validation
+│   ├── pagination.py         # Paginated output for results
+│   └── year_utils.py         # Year normalization & parsing
 ```
 
-> ⚠️ Note: In upcoming releases, the project structure will be refactored into a layered architecture (menu / flows / 
-> services / utils).
+---
+
+### 🧠 Architectural Overview
+
+The application follows a **layered structure**, where each module has a clear responsibility:
+
+* **menu/** → handles user interaction (CLI interface)
+* **flows/** → defines user scenarios and orchestrates actions
+* **services/** → contains core business logic
+* **db/** → responsible for all database operations
+* **utils/** → reusable helper functions
+
+---
+
+### ✅ Benefits of This Structure
+
+* 📌 Clear separation of concerns
+* 🔧 Easier debugging and testing
+* 📦 Scalable and extensible architecture
+* 🔄 Ready for transition to OOP (v2.0.0)
+* 🌐 Prepared for future features (i18n, authentication, UI)
+
+---
+
+💡 This structure reflects a transition from a monolithic script to a **production-like modular design**, making the project easier to maintain and evolve.
+
 
 ---
 
@@ -117,7 +161,7 @@ pip install pymysql pymongo
 ### 4. Run the application
 
 ```bash
-python main.py
+python app/main.py
 ```
 
 ---
