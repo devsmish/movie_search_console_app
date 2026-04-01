@@ -1,4 +1,22 @@
-def print_results_paginated(results, page_size=10):
+def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
+    """
+    Displays a list of results in a paginated format in the console.
+
+    The function prints results page by page, showing film details such as
+    film_id, title, genre, and release year. Users can navigate using
+    'n' (next page), 'p' (previous page), or 'q' (exit).
+
+    Args:
+        results (list[dict]): A list of dictionaries, each representing a film/document
+            with at least the keys: 'film_id', 'title', 'name' (genre), and 'release_year'.
+        page_size (int, optional): Number of results displayed per page. Defaults to 10.
+
+    Returns:
+        None: Prints results directly to the console; does not return any value.
+
+    Raises:
+        KeyError: If any expected key ('film_id', 'title', 'name', 'release_year') is missing in a result.
+    """
     total = len(results)
     if total == 0:
         print("Nothing found!")

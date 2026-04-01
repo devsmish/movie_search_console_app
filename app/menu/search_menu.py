@@ -5,7 +5,30 @@ from app.flows.genre_flow import genres_flow
 from app.flows.genre_years_flow import genre_years_flow
 
 
-def search_menu(cursor, mongo_collection):
+def search_menu(cursor, mongo_collection) -> None:
+    """
+    Displays the search menu for movies and handles user selection.
+
+    Allows the user to choose a search criterion:
+    1. Search by keyword
+    2. Search by genre
+    3. Search by year or range of years
+    4. Search by genre and year range
+    Q. Return to the previous menu
+
+    Args:
+        cursor: Database cursor used for performing the searches.
+        mongo_collection (pymongo.collection.Collection): MongoDB collection to log the search requests.
+
+    Returns:
+        None: The function handles user interaction, executes searches,
+        and logs results, but does not return a value.
+
+    Notes:
+        - Uses `safe_input` to handle user input safely.
+        - Calls the corresponding flow functions based on the user's selection.
+        - Loops until the user chooses to quit.
+    """
     while True:
         print("""
 =====================================SEARCH MENU========================================
