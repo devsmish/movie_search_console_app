@@ -1,9 +1,32 @@
-from app.func_menu import search_menu, stats_menu, safe_input
-from app.sql_connection import get_connection
-from app.mongo_connection import get_mongo_collection
+from app.db.sql_connection import get_connection
+from app.db.mongo_connection import get_mongo_collection
+from app.utils.input_utils import safe_input
+from app.menu.search_menu import search_menu
+from app.menu.stats_menu import stats_menu
 
 
-def main():
+def main_menu() -> None:
+    """
+    Entry point and main menu for the Movie Search App.
+
+    Establishes connections to the SQL database and MongoDB, then displays
+    the main menu to the user. Allows navigation to movie searches or
+    statistics reports.
+
+    Args:
+        None
+
+    Returns:
+        None: Handles user interaction, executes searches and statistics
+        flows, and closes database connections on exit.
+
+    Notes:
+        - Uses `safe_input` to handle user input safely.
+        - Initializes `cursor` for SQL database operations.
+        - Initializes `mongo_collection` for logging search requests.
+        - Loops until the user chooses to exit the program.
+        - Closes database connections when exiting.
+    """
     print("Movie Search App started")
 
     try:
@@ -34,7 +57,6 @@ Q. Exit the program.""")
             print("\033[31mEmpty input is not allowed. Please try again.\033[0m")
             continue
 
-
         if initial_choice == "1":
             search_menu(cursor, mongo_collection)
         elif initial_choice == "2":
@@ -47,6 +69,3 @@ Q. Exit the program.""")
 
     cursor.close()
     connection.close()
-
-if __name__ == "__main__":
-    main()
