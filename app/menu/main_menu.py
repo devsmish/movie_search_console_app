@@ -1,9 +1,11 @@
-from app.func_menu import search_menu, stats_menu, safe_input
-from app.sql_connection import get_connection
-from app.mongo_connection import get_mongo_collection
+from app.db.sql_connection import get_connection
+from app.db.mongo_connection import get_mongo_collection
+from app.utils.input_utils import safe_input
+from app.menu.search_menu import search_menu
+from app.menu.stats_menu import stats_menu
 
 
-def main():
+def main_menu():
     print("Movie Search App started")
 
     try:
@@ -34,7 +36,6 @@ Q. Exit the program.""")
             print("\033[31mEmpty input is not allowed. Please try again.\033[0m")
             continue
 
-
         if initial_choice == "1":
             search_menu(cursor, mongo_collection)
         elif initial_choice == "2":
@@ -47,6 +48,3 @@ Q. Exit the program.""")
 
     cursor.close()
     connection.close()
-
-if __name__ == "__main__":
-    main()
