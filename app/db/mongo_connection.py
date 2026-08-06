@@ -1,5 +1,9 @@
 from pymongo import MongoClient
 from config import Config
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pymongo.collection
 
 
 def get_mongo_collection() -> "pymongo.collection.Collection":

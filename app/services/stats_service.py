@@ -1,4 +1,8 @@
 from app.db.mongo_queries import top5_queries, last5_queries
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pymongo.collection
 
 
 def top5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
