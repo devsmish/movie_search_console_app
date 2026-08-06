@@ -1,5 +1,9 @@
 from app.utils.input_utils import build_query_key
 import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pymongo.collection
 
 
 def log_request(
