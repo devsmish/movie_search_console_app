@@ -15,7 +15,7 @@ def safe_input(prompt: str, interrupt_msg: str = None, allow_empty: bool = True)
         or None if input is interrupted or empty input is not allowed.
     """
     try:
-        value = input(prompt).strip()
+        value = input(prompt).strip().lower()
 
         if not allow_empty and value == "":
             return None
