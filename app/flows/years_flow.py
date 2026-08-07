@@ -1,29 +1,50 @@
+from app.utils.input_utils import safe_input
 from app.utils.year_utils import normalize_year_input
 from app.db.sql_connection import range_years, years_search
 from app.services.search_service import execute_search
 import datetime
 
 
-def show_years(cursor) -> None:
-    """
-    Displays the available range of years from the database.
+DEFAULT_MIN_YEAR = 1990
 
-    Uses `range_years(cursor)` to fetch the minimum and maximum years
-    for which data is available and prints them to the console.
+
+def get_available_year_range(cursor) -> tuple[int, int]:
+    """
+    Fetches the actual available release-year range from the database.
 
     Args:
-        cursor: Database cursor used to fetch the year range.
+        cursor: Active MySQL cursor.
 
     Returns:
-        None: The function prints information to the console and does not return a value.
+        tuple[int, int]: (min_year, max_year). Falls back to
+        (DEFAULT_MIN_YEAR, current_year - 1) if the query fails or
+        returns no data, so the app can still function.
     """
+    fallback = (DEFAULT_MIN_YEAR, datetime.datetime.now().year - 1)
     try:
         result = range_years(cursor)
     except Exception as e:
         print(f"Error getting year range: {e}")
-        return
-    for row in result:
-        print(f"You can specify a range of years from {row['min_year']} to {row['max_year']}")
+        return fallback
+
+    if not result or result[0].get("min_year") is None or result[0].get("max_year") is None:
+        return fallback
+
+    return result[0]["min_year"], result[0]["max_year"]
+
+
+def show_years(min_year: int, max_year: int) -> None:
+    """
+    Displays the available range of years to the user.
+
+    Args:
+        min_year (int): Minimum available release year.
+        max_year (int): Maximum available release year.
+
+    Returns:
+        None: The function prints information to the console and does not return a value.
+    """
+    print(f"You can specify a range of years from {min_year} to {max_year}")
 
 
 def get_year_range(min_year: int, max_year: int) -> dict | None:
@@ -39,17 +60,19 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
 
     Returns:
         dict | None: A dictionary with 'start_year' and 'end_year' keys if input is valid,
-        or None if the user quits.
+        or None if the user quits or interrupts input.
 
     Notes:
         - Accepts formats like "2000-2010", "2000/2010", "2000 2010" or single years.
         - Prints error messages for invalid input or out-of-range years.
     """
     while True:
-        user_input = input(f"""
-Enter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: """).strip()
+        user_input = safe_input(
+            f"\nEnter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: ",
+            interrupt_msg="GET_YEAR_RANGE: \033[31mThe user interrupted the program!\033[0m\n"
+        )
 
-        if user_input == "q":
+        if user_input is None or user_input == "q":
             return None
 
         if not user_input:
@@ -91,9 +114,9 @@ def years_flow(cursor, mongo_collection) -> None:
     """
     Handles the flow for searching movies by a specific year or range of years.
 
-    Displays the available year range using `show_years`, prompts the user
-    to enter a year or range with `get_year_range`, and executes the search
-    via `execute_search`, logging results to MongoDB.
+    Fetches the actual available year range from the database, displays it,
+    prompts the user to enter a year or range with `get_year_range`, and
+    executes the search via `execute_search`, logging results to MongoDB.
 
     Args:
         cursor: Database cursor used to fetch data and perform searches.
@@ -103,15 +126,15 @@ def years_flow(cursor, mongo_collection) -> None:
         None: Results are printed to the console and logged to MongoDB.
 
     Notes:
-        - The default year range is 1990 to the previous year.
+        - The year range is validated against the actual min/max release
+          years present in the database, not a hardcoded assumption.
         - The function exits if the user cancels input.
     """
     print("""
 =====================================RANGE OF YEARS=====================================
 Select a year or range of years or [q] to return to the previous menu.""")
-    min_year = 1990
-    max_year = datetime.datetime.now().year - 1
-    show_years(cursor)
+    min_year, max_year = get_available_year_range(cursor)
+    show_years(min_year, max_year)
     params = get_year_range(min_year, max_year)
     if params is None:
         return

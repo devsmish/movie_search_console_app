@@ -215,36 +215,46 @@ This design provides:
 
 ## 🔮 Roadmap
 
-### 🔧 v0.10.0
 
-* Project restructuring (modular architecture)
-* Improved documentation (docstrings)
-
-### 🌍 v0.11.0
-
-* Internationalization (multi-language support)
-
-### 🔐 v0.12.0
-
-* Basic user authentication
-
-### 📊 v0.14.0
-
-* Advanced analytics and reporting
 
 ### 🏁 v1.0.0
 
 * Stable functional architecture
 
-### 🔄 v2.0.0
+### 🐛 v1.0.1
+
+* Bug fixes, connection reliability, encoding fixes, and workflow consistency
+
+### 🌍 v2.0.0
+
+* Internationalization (multi-language support)
+
+### 📊 v2.1.0
+
+* Unit-testing
+
+### 📊 v2.2.0
+
+* Advanced analytics and reporting
+
+### 🔧 v2.3.0
+
+* Project restructuring (modular architecture)
+* Improved documentation (docstrings)
+
+### 🔐 v3.0.0
+
+* Basic user authentication
+
+### 🔄 v4.0.0
 
 * Transition to Object-Oriented Programming (OOP)
 
-### 🎨 v3.0.0
+### 🎨 v5.0.0
 
 * UI layer (graphical interface)
 
-### 🎨 v4.0.0
+### 🎨 v6.0.0
 
 * UI layer (web interface)
 

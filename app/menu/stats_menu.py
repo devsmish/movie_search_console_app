@@ -1,5 +1,9 @@
 from app.utils.input_utils import safe_input
 from app.services.stats_service import top5_requests, last5_requests
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pymongo.collection
 
 
 def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:

@@ -26,7 +26,7 @@ Enter a word or phrase to search for a movie, or [q] to return to the previous m
     )
     if input_word is None:
         return None
-    return input_word
+    return input_word.strip().lower()
 
 
 def keyword_flow(cursor, mongo_collection) -> None:

@@ -1,3 +1,6 @@
+from app.utils.input_utils import safe_input
+
+
 def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
     """
     Displays a list of results in a paginated format in the console.
@@ -45,9 +48,15 @@ def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
         navigation.append("[q] Exit")
         print("\n" + " | ".join(navigation))
 
-        choice = input("Your choice: ").strip().lower()
+        choice = safe_input(
+            "Your choice: ",
+            interrupt_msg="PRINT_RESULTS_PAGINATED: \033[31mThe user interrupted the program!\033[0m\n"
+        )
 
-        if choice == "n" and current_page < total_pages - 1:
+        if choice is None:
+            print("Exit viewing results")
+            break
+        elif choice == "n" and current_page < total_pages - 1:
             current_page += 1
         elif choice == "p" and current_page > 0:
             current_page -= 1

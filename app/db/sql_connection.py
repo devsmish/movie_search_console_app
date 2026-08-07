@@ -2,6 +2,10 @@ import pymysql
 from config import Config
 from pymysql.cursors import DictCursor
 from app.db.sql_queries import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pymysql.connections
 
 
 def get_connection() -> "pymysql.connections.Connection":
@@ -52,7 +56,7 @@ def keywords_search(keyword: str, cursor) -> list[dict]:
                 "description": str
             }
     """
-    cursor.execute(keyword_query, (f"%{keyword}%",))
+    cursor.execute(keyword_query, (f"%{keyword.lower()}%",))
     return cursor.fetchall()
 
 def list_genres(cursor) -> list[dict]:
