@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from config import Config
+from app.i18n.translator import t
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -28,8 +29,8 @@ def get_mongo_collection() -> "pymongo.collection.Collection":
     try:
         client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
         db = client[Config.MONGO_DATABASE]
-        client.admin.command("ping")  # проверка
-        print("MongoDB OK")
+        client.admin.command("ping")  # connectivity check
+        print(t("db.mongo_ok"))
         return db[Config.MONGO_COLLECTION]
     except Exception as e:
-        raise Exception(f"MongoDB connection error: {e}")
+        raise Exception(t("db.mongo_error", error=e))
