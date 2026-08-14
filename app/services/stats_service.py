@@ -1,4 +1,5 @@
 from app.db.mongo_queries import top5_queries, last5_queries
+from app.i18n.translator import t, banner
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -22,9 +23,8 @@ def top5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
         - Requires the aggregation pipeline `top5_queries` to be defined globally.
     """
     result = mongo_collection.aggregate(top5_queries)
-    print("""
-==================================REPORT TOP-5 QUERIES==================================""")
-    print("\nPrompt                                       | Count")
+    print(f"\n{banner('stats.top5.header')}")
+    print(f"\n{t('stats.top5.col_query'):<45}| {t('stats.top5.col_count')}")
     print("-" * 88)
     for row in result:
         print(f"{row['_id']:<45}| {row['count']:<5}")
@@ -49,9 +49,8 @@ def last5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
         - Duration is printed in milliseconds with 3 decimal places.
     """
     result = mongo_collection.aggregate(last5_queries)
-    print("""
-=================================REPORT LAST-5 QUERIES==================================""")
-    print("\nQuery Key                               | Search Type       | Results Count | Duration, ms")
+    print(f"\n{banner('stats.last5.header')}")
+    print(f"\n{t('stats.last5.col_query_key'):<40}| {t('stats.last5.col_search_type'):<18}| {t('stats.last5.col_results_count'):<14}| {t('stats.last5.col_duration')}")
     print("-" * 88)
     for row in result:
         print(f"{row['query_key']:<40}| {row['search_type']:<18}| {row['results_count']:<14}|\

@@ -1,5 +1,6 @@
 from app.utils.input_utils import safe_input
 from app.services.stats_service import top5_requests, last5_requests
+from app.i18n.translator import t, banner
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -26,15 +27,15 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
         - The menu loops until the user chooses to quit.
     """
     while True:
-        print("""
-===================================STATISTICS MENU======================================
-Select a report option to view (1, 2 or Q):
-1. TOP-5 search queries.
-2. 5 most recent search queries.
-Q. Return to the previous menu.""")
+        print(f"""
+{banner('menu.stats.header')}
+{t('menu.stats.prompt')}
+{t('menu.stats.option_top5')}
+{t('menu.stats.option_last5')}
+{t('menu.stats.option_back')}""")
         statistic_choice = safe_input(
-            "Choice your statistic report: ",
-            interrupt_msg="\033[31mThe user interrupted the statistic menu!\033[0m\nReturn to the main menu"
+            t("menu.stats.input_prompt"),
+            interrupt_msg=f"\033[31m{t('menu.stats.interrupt')}\033[0m"
         )
         if statistic_choice is None:
             return
@@ -46,4 +47,4 @@ Q. Return to the previous menu.""")
         elif statistic_choice.lower() == "q":
             break
         else:
-            print("\033[31mInvalid criterion. Please try again.\033[0m")
+            print(f"\033[31m{t('errors.invalid_choice')}\033[0m")

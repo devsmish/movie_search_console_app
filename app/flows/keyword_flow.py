@@ -1,6 +1,7 @@
 from app.utils.input_utils import safe_input
 from app.services.search_service import execute_search
 from app.db.sql_connection import keywords_search
+from app.i18n.translator import t, banner
 
 
 def input_keyword() -> str | None:
@@ -17,12 +18,12 @@ def input_keyword() -> str | None:
         str | None: The keyword entered by the user, or None if input is
         interrupted or canceled.
     """
-    print("""
-=====================================ENTER KEYWORD======================================
-Enter a word or phrase to search for a movie, or [q] to return to the previous menu.""")
+    print(f"""
+{banner('flows.keyword.header')}
+{t('flows.keyword.instruction')}""")
     input_word = safe_input(
-        "Enter your keyword: ",
-        interrupt_msg="INPUT_KEYWORD: \033[31mThe user interrupted the program!\033[0m\n"
+        t("flows.keyword.input_prompt"),
+        interrupt_msg=f"\033[31m{t('flows.keyword.interrupt')}\033[0m\n"
     )
     if input_word is None:
         return None
@@ -47,10 +48,10 @@ def keyword_flow(cursor, mongo_collection) -> None:
     while True:
         keyword = input_keyword()
         if keyword is None:
-            print("Return to search menu")
+            print(t("flows.keyword.cancelled"))
             break
         if keyword == "":
-            print("\033[31mEmpty selection. Try again.\033[0m")
+            print(f"\033[31m{t('errors.empty_selection')}\033[0m")
             continue
         if keyword == "q":
             break
