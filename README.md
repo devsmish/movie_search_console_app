@@ -43,6 +43,14 @@ non-relational databases, modular architecture, and CLI interaction design.
   * execution time
   * success status
 
+### 🌍 Multi-language UI
+
+* Supported languages: **English, Deutsch, Русский, Українська**
+* Language is selected once, right at startup, before any menu is shown
+* All menu text, prompts, and error messages are localized; movie titles,
+  genres, and descriptions come from the Sakila dataset and are **not**
+  translated (they stay in the source data's original language)
+
 ---
 
 ## 🏗 Project Structure
@@ -53,6 +61,15 @@ The project has been refactored into a modular and scalable architecture, separa
 app/
 │
 ├── main.py                   # Application entry point
+│
+├── i18n/                      # Internationalization (multi-language UI)
+│   ├── translator.py         # t() / set_language() / banner() helpers
+│   ├── language_select.py    # Startup language picker (shown before translator is set)
+│   └── locales/              # One JSON dictionary per supported language
+│       ├── en.json
+│       ├── de.json
+│       ├── ru.json
+│       └── uk.json
 │
 ├── db/                       # Data access layer (database interaction)
 │   ├── sql_connection.py     # MySQL connection setup
@@ -93,6 +110,7 @@ The application follows a **layered structure**, where each module has a clear r
 * **services/** → contains core business logic
 * **db/** → responsible for all database operations
 * **utils/** → reusable helper functions
+* **i18n/** → 4-language translates
 
 ---
 
@@ -101,8 +119,7 @@ The application follows a **layered structure**, where each module has a clear r
 * 📌 Clear separation of concerns
 * 🔧 Easier debugging and testing
 * 📦 Scalable and extensible architecture
-* 🔄 Ready for transition to OOP (v2.0.0)
-* 🌐 Prepared for future features (i18n, authentication, UI)
+* 🌐 Multi-language UI already implemented (v2.0.0)
 
 ---
 
@@ -245,18 +262,6 @@ This design provides:
 ### 🔐 v3.0.0
 
 * Basic user authentication
-
-### 🔄 v4.0.0
-
-* Transition to Object-Oriented Programming (OOP)
-
-### 🎨 v5.0.0
-
-* UI layer (graphical interface)
-
-### 🎨 v6.0.0
-
-* UI layer (web interface)
 
 ---
 

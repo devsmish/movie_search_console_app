@@ -1,0 +1,120 @@
+{
+  "app": {
+    "started": "Movie Search App started",
+    "banner_title": "MOVIE SEARCH APP",
+    "startup_error": "Startup error: {error}"
+  },
+  "menu": {
+    "main": {
+      "header": "MAIN MENU",
+      "prompt": "Select the option You would like to use (1, 2 or Q):",
+      "option_search": "1. Searching for a movie in the library.",
+      "option_stats": "2. View Your search history or popular queries.",
+      "option_exit": "Q. Exit the program.",
+      "input_prompt": "Enter your option: ",
+      "interrupt": "The user terminated the program!\nThe program was closed.",
+      "goodbye": "App closed. Goodbye!"
+    },
+    "search": {
+      "header": "SEARCH MENU",
+      "prompt": "Select criterion to search for a movie (1, 2, 3, 4 or Q):",
+      "option_keyword": "1. Search by keyword.",
+      "option_genre": "2. Search by genre.",
+      "option_years": "3. Search by year or range of years.",
+      "option_genre_years": "4. Search by genre and year range.",
+      "option_back": "Q. Return to the previous menu.",
+      "input_prompt": "Enter your search criterion: ",
+      "interrupt": "The user interrupted the search menu!\nReturn to the main menu"
+    },
+    "stats": {
+      "header": "STATISTICS MENU",
+      "prompt": "Select a report option to view (1, 2 or Q):",
+      "option_top5": "1. TOP-5 search queries.",
+      "option_last5": "2. 5 most recent search queries.",
+      "option_back": "Q. Return to the previous menu.",
+      "input_prompt": "Choice your statistic report: ",
+      "interrupt": "The user interrupted the statistic menu!\nReturn to the main menu"
+    }
+  },
+  "errors": {
+    "empty_input": "Empty input is not allowed. Please try again.",
+    "invalid_choice": "Invalid choice. Please try again.",
+    "empty_selection": "Empty selection. Try again."
+  },
+  "flows": {
+    "keyword": {
+      "header": "ENTER KEYWORD",
+      "instruction": "Enter a word or phrase to search for a movie, or [q] to return to the previous menu.",
+      "input_prompt": "Enter your keyword: ",
+      "interrupt": "The user interrupted the program!",
+      "cancelled": "Return to search menu"
+    },
+    "genre": {
+      "load_error": "Error loading genres: {error}",
+      "data_error": "Data structure error: {error}",
+      "header": "SELECT A GENRE FROM THE LIST",
+      "instruction": "Select a genre by number or title from the list or [q] to return to the previous menu.",
+      "col_num": "#",
+      "col_genre": "Genre",
+      "input_prompt": "Select a genre by number or title.\nPress [q] to return to the previous menu: ",
+      "interrupt": "The user interrupted the program!",
+      "invalid": "Invalid genre. Try again."
+    },
+    "years": {
+      "range_error": "Error getting year range: {error}",
+      "range_info": "You can specify a range of years from {min} to {max}",
+      "header": "RANGE OF YEARS",
+      "instruction": "Select a year or range of years or [q] to return to the previous menu.",
+      "input_prompt": "Enter a year or range ({min}-{max}) or [q] to return to the previous menu: ",
+      "interrupt": "The user interrupted the program!",
+      "empty": "Empty input. Try again.",
+      "start_after_end": "Start year cannot be greater than end year!",
+      "out_of_range": "Year out of range",
+      "bad_format": "Please enter the correct format (for example: 2000-2010, 2000/2010 or 2000 2010)"
+    }
+  },
+  "pagination": {
+    "nothing_found": "Nothing found!",
+    "results_found": "Results found: {total}",
+    "page_indicator": "-------  Page  {current}  of  {total}  -------",
+    "col_num": "#",
+    "col_film_id": "Film_ID",
+    "col_title": "Title",
+    "col_genre": "Genre",
+    "col_year": "Release Year",
+    "nav_prev": "[p] Previous page",
+    "nav_next": "[n] Next page",
+    "nav_exit": "[q] Exit",
+    "input_prompt": "Your choice: ",
+    "interrupt": "The user interrupted the program!",
+    "exit_message": "Exit viewing results",
+    "unavailable": "Unavailable command"
+  },
+  "stats": {
+    "top5": {
+      "header": "REPORT TOP-5 QUERIES",
+      "col_query": "Prompt",
+      "col_count": "Count"
+    },
+    "last5": {
+      "header": "REPORT LAST-5 QUERIES",
+      "col_query_key": "Query Key",
+      "col_search_type": "Search Type",
+      "col_results_count": "Results Count",
+      "col_duration": "Duration, ms"
+    }
+  },
+  "search_service": {
+    "search_error": "Error searching in the database or in the query: {error}",
+    "output_error": "Results output error: {error}",
+    "logging_error": "Logging error: {error}"
+  },
+  "db": {
+    "mysql_ok": "MySQL OK",
+    "mysql_error": "MySQL connection error: {error}",
+    "mongo_ok": "MongoDB OK",
+    "mongo_error": "MongoDB connection error: {error}",
+    "log_write_error": "Connection error or invalid document generated",
+    "log_write_detail": "MongoDB write error: {error}"
+  }
+}

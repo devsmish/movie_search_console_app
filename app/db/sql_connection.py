@@ -2,6 +2,7 @@ import pymysql
 from config import Config
 from pymysql.cursors import DictCursor
 from app.db.sql_queries import *
+from app.i18n.translator import t
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -32,11 +33,11 @@ def get_connection() -> "pymysql.connections.Connection":
 
         connection.ping(reconnect=True)
 
-        print("MySQL OK")
+        print(t("db.mysql_ok"))
         return connection
 
     except Exception as e:
-        raise Exception(f"MySQL connection error: {e}")
+        raise Exception(t("db.mysql_error", error=e))
 
 def keywords_search(keyword: str, cursor) -> list[dict]:
     """

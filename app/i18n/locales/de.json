@@ -1,0 +1,120 @@
+{
+  "app": {
+    "started": "Movie Search App gestartet",
+    "banner_title": "FILMSUCHE-APP",
+    "startup_error": "Startfehler: {error}"
+  },
+  "menu": {
+    "main": {
+      "header": "HAUPTMENÜ",
+      "prompt": "Wählen Sie die gewünschte Option (1, 2 oder Q):",
+      "option_search": "1. Nach einem Film in der Bibliothek suchen.",
+      "option_stats": "2. Suchverlauf oder beliebte Anfragen ansehen.",
+      "option_exit": "Q. Programm beenden.",
+      "input_prompt": "Ihre Option eingeben: ",
+      "interrupt": "Der Benutzer hat das Programm beendet!\nDas Programm wurde geschlossen.",
+      "goodbye": "Anwendung geschlossen. Auf Wiedersehen!"
+    },
+    "search": {
+      "header": "SUCHMENÜ",
+      "prompt": "Wählen Sie das Suchkriterium (1, 2, 3, 4 oder Q):",
+      "option_keyword": "1. Suche nach Stichwort.",
+      "option_genre": "2. Suche nach Genre.",
+      "option_years": "3. Suche nach Jahr oder Jahresbereich.",
+      "option_genre_years": "4. Suche nach Genre und Jahresbereich.",
+      "option_back": "Q. Zurück zum vorherigen Menü.",
+      "input_prompt": "Ihr Suchkriterium eingeben: ",
+      "interrupt": "Der Benutzer hat das Suchmenü unterbrochen!\nZurück zum Hauptmenü"
+    },
+    "stats": {
+      "header": "STATISTIKMENÜ",
+      "prompt": "Wählen Sie einen Berichtstyp (1, 2 oder Q):",
+      "option_top5": "1. TOP-5 Suchanfragen.",
+      "option_last5": "2. 5 letzte Suchanfragen.",
+      "option_back": "Q. Zurück zum vorherigen Menü.",
+      "input_prompt": "Statistikbericht wählen: ",
+      "interrupt": "Der Benutzer hat das Statistikmenü unterbrochen!\nZurück zum Hauptmenü"
+    }
+  },
+  "errors": {
+    "empty_input": "Leere Eingabe ist nicht erlaubt. Bitte versuchen Sie es erneut.",
+    "invalid_choice": "Ungültige Auswahl. Bitte versuchen Sie es erneut.",
+    "empty_selection": "Leere Auswahl. Versuchen Sie es erneut."
+  },
+  "flows": {
+    "keyword": {
+      "header": "STICHWORT EINGEBEN",
+      "instruction": "Geben Sie ein Wort oder einen Ausdruck zur Filmsuche ein, oder [q] um zum vorherigen Menü zurückzukehren.",
+      "input_prompt": "Geben Sie Ihr Stichwort ein: ",
+      "interrupt": "Der Benutzer hat das Programm unterbrochen!",
+      "cancelled": "Zurück zum Suchmenü"
+    },
+    "genre": {
+      "load_error": "Fehler beim Laden der Genres: {error}",
+      "data_error": "Fehler in der Datenstruktur: {error}",
+      "header": "GENRE AUS DER LISTE AUSWÄHLEN",
+      "instruction": "Wählen Sie ein Genre anhand der Nummer oder des Namens aus der Liste, oder [q] um zum vorherigen Menü zurückzukehren.",
+      "col_num": "#",
+      "col_genre": "Genre",
+      "input_prompt": "Genre anhand der Nummer oder des Namens auswählen.\nDrücken Sie [q], um zum vorherigen Menü zurückzukehren: ",
+      "interrupt": "Der Benutzer hat das Programm unterbrochen!",
+      "invalid": "Ungültiges Genre. Versuchen Sie es erneut."
+    },
+    "years": {
+      "range_error": "Fehler beim Abrufen des Jahresbereichs: {error}",
+      "range_info": "Sie können einen Jahresbereich von {min} bis {max} angeben",
+      "header": "JAHRESBEREICH",
+      "instruction": "Wählen Sie ein Jahr oder einen Jahresbereich, oder [q] um zum vorherigen Menü zurückzukehren.",
+      "input_prompt": "Geben Sie ein Jahr oder einen Bereich ({min}-{max}) ein, oder [q] um zum vorherigen Menü zurückzukehren: ",
+      "interrupt": "Der Benutzer hat das Programm unterbrochen!",
+      "empty": "Leere Eingabe. Versuchen Sie es erneut.",
+      "start_after_end": "Das Startjahr darf nicht größer als das Endjahr sein!",
+      "out_of_range": "Jahr außerhalb des Bereichs",
+      "bad_format": "Bitte geben Sie das richtige Format ein (zum Beispiel: 2000-2010, 2000/2010 oder 2000 2010)"
+    }
+  },
+  "pagination": {
+    "nothing_found": "Nichts gefunden!",
+    "results_found": "Gefundene Ergebnisse: {total}",
+    "page_indicator": "-------  Seite  {current}  von  {total}  -------",
+    "col_num": "#",
+    "col_film_id": "Film-ID",
+    "col_title": "Titel",
+    "col_genre": "Genre",
+    "col_year": "Erscheinungsjahr",
+    "nav_prev": "[p] Vorherige Seite",
+    "nav_next": "[n] Nächste Seite",
+    "nav_exit": "[q] Beenden",
+    "input_prompt": "Ihre Wahl: ",
+    "interrupt": "Der Benutzer hat das Programm unterbrochen!",
+    "exit_message": "Ergebnisanzeige beendet",
+    "unavailable": "Befehl nicht verfügbar"
+  },
+  "stats": {
+    "top5": {
+      "header": "BERICHT TOP-5 ANFRAGEN",
+      "col_query": "Anfrage",
+      "col_count": "Anzahl"
+    },
+    "last5": {
+      "header": "BERICHT LETZTE 5 ANFRAGEN",
+      "col_query_key": "Anfrageschlüssel",
+      "col_search_type": "Suchtyp",
+      "col_results_count": "Ergebnisanzahl",
+      "col_duration": "Dauer, ms"
+    }
+  },
+  "search_service": {
+    "search_error": "Fehler bei der Suche in der Datenbank oder in der Abfrage: {error}",
+    "output_error": "Fehler bei der Ergebnisausgabe: {error}",
+    "logging_error": "Protokollierungsfehler: {error}"
+  },
+  "db": {
+    "mysql_ok": "MySQL OK",
+    "mysql_error": "MySQL-Verbindungsfehler: {error}",
+    "mongo_ok": "MongoDB OK",
+    "mongo_error": "MongoDB-Verbindungsfehler: {error}",
+    "log_write_error": "Verbindungsfehler oder ungültiges Dokument erstellt",
+    "log_write_detail": "MongoDB-Schreibfehler: {error}"
+  }
+}

@@ -2,6 +2,7 @@ from app.utils.input_utils import safe_input
 from app.utils.year_utils import normalize_year_input
 from app.db.sql_connection import range_years, years_search
 from app.services.search_service import execute_search
+from app.i18n.translator import t, banner
 import datetime
 
 
@@ -24,7 +25,7 @@ def get_available_year_range(cursor) -> tuple[int, int]:
     try:
         result = range_years(cursor)
     except Exception as e:
-        print(f"Error getting year range: {e}")
+        print(t("flows.years.range_error", error=e))
         return fallback
 
     if not result or result[0].get("min_year") is None or result[0].get("max_year") is None:
@@ -44,7 +45,7 @@ def show_years(min_year: int, max_year: int) -> None:
     Returns:
         None: The function prints information to the console and does not return a value.
     """
-    print(f"You can specify a range of years from {min_year} to {max_year}")
+    print(t("flows.years.range_info", min=min_year, max=max_year))
 
 
 def get_year_range(min_year: int, max_year: int) -> dict | None:
@@ -68,15 +69,15 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
     """
     while True:
         user_input = safe_input(
-            f"\nEnter a year or range ({min_year}-{max_year}) or [q] to return to the previous menu: ",
-            interrupt_msg="GET_YEAR_RANGE: \033[31mThe user interrupted the program!\033[0m\n"
+            f"\n{t('flows.years.input_prompt', min=min_year, max=max_year)}",
+            interrupt_msg=f"\033[31m{t('flows.years.interrupt')}\033[0m\n"
         )
 
         if user_input is None or user_input == "q":
             return None
 
         if not user_input:
-            print("\033[31mEmpty input. Try again.\033[0m")
+            print(f"\033[31m{t('flows.years.empty')}\033[0m")
             continue
 
         try:
@@ -94,11 +95,11 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
                 start = end = year
 
             if start > end:
-                print("\033[31mStart year cannot be greater than end year!\033[0m")
+                print(f"\033[31m{t('flows.years.start_after_end')}\033[0m")
                 continue
 
             if start < min_year or end > max_year:
-                print("\033[31mYear out of range\033[0m")
+                print(f"\033[31m{t('flows.years.out_of_range')}\033[0m")
                 continue
 
             return {
@@ -107,7 +108,7 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
             }
 
         except ValueError:
-            print("\033[31mPlease enter the correct format (for example: 2000-2010, 2000/2010 or 2000 2010)\033[0m")
+            print(f"\033[31m{t('flows.years.bad_format')}\033[0m")
 
 
 def years_flow(cursor, mongo_collection) -> None:
@@ -130,9 +131,9 @@ def years_flow(cursor, mongo_collection) -> None:
           years present in the database, not a hardcoded assumption.
         - The function exits if the user cancels input.
     """
-    print("""
-=====================================RANGE OF YEARS=====================================
-Select a year or range of years or [q] to return to the previous menu.""")
+    print(f"""
+{banner('flows.years.header')}
+{t('flows.years.instruction')}""")
     min_year, max_year = get_available_year_range(cursor)
     show_years(min_year, max_year)
     params = get_year_range(min_year, max_year)
