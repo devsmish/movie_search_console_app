@@ -1,5 +1,6 @@
 from app.utils.pagination import print_results_paginated
 from app.services.log_service import log_request
+from app.i18n.translator import t
 import datetime
 
 
@@ -31,7 +32,7 @@ def execute_search(search_func, mongo_collection, search_type, params) -> None:
     try:
         results = search_func()
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Error searching in the database or in the query: {e}")
+        print(f"EXECUTE_SEARCH: {t('search_service.search_error', error=e)}")
         success = False
 
     end_time = datetime.datetime.now()
@@ -40,7 +41,7 @@ def execute_search(search_func, mongo_collection, search_type, params) -> None:
     try:
         print_results_paginated(results)
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Results output error: {e}")
+        print(f"EXECUTE_SEARCH: {t('search_service.output_error', error=e)}")
 
     try:
         log_request(
@@ -52,4 +53,4 @@ def execute_search(search_func, mongo_collection, search_type, params) -> None:
             success
         )
     except Exception as e:
-        print(f"EXECUTE_SEARCH: Logging error: {e}")
+        print(f"EXECUTE_SEARCH: {t('search_service.logging_error', error=e)}")

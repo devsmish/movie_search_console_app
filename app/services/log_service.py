@@ -1,4 +1,5 @@
 from app.utils.input_utils import build_query_key
+from app.i18n.translator import t
 import datetime
 from typing import TYPE_CHECKING
 
@@ -48,5 +49,5 @@ def log_request(
             }
         )
     except Exception as e:
-        print("LOG_REQUEST: Connection error or invalid document generated")
-        print(f"MongoDB write error: {e}")
+        print(f"LOG_REQUEST: {t('db.log_write_error')}")
+        print(t("db.log_write_detail", error=e))
