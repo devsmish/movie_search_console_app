@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.0.0] - 2026-08-14
+
+### Added
+- Multi-language UI: English, Deutsch, Русский, Українська
+- Language selection prompt at application startup, before any other menu
+- `app/i18n/` module: `translator.py` (t()/set_language()/banner() helpers),
+  `language_select.py`, and per-language JSON dictionaries under `locales/`
+
+### Changed
+- All menu text, prompts, and error messages now come from the active
+  locale instead of being hardcoded in English
+- Section banners (`=== HEADER ===`) are now generated dynamically
+  (centered around the translated header text) instead of using a fixed
+  number of hardcoded `=` characters, so they stay visually consistent
+  regardless of translation length
+
+### Fixed
+- Keyword search was case-broken: `UPPER(title) LIKE %s` was compared
+  against an already-lowercased pattern and could never match. Fixed to
+  `LOWER(f.title) LIKE %s`
+- `.env.example` referenced `MONGO_URL` while the code expected
+  `MONGO_URI`, and was missing `MONGO_COLLECTION` entirely
+- `requirements.txt` was saved as UTF-16 and could break `pip install -r`;
+  re-saved as UTF-8
+- Year-range validation used a hardcoded `1990` lower bound instead of the
+  actual minimum release year available in the database
+- `genre_years_flow` used an inconsistent upper year bound compared to
+  `years_flow`; both now share the same DB-derived range
+- SQL queries no longer hardcode the `sakila.` schema prefix, so they work
+  with whatever database name is configured via `MYSQL_DATABASE`
+- Database connections are now guaranteed to close via `try/finally`, even
+  if an unhandled exception occurs mid-session
+- Replaced remaining raw `input()` calls with `safe_input()` for consistent
+  Ctrl+C handling across the whole app
+- Removed unused dead-code example documents from `mongo_queries.py`
+
+---
+
 ## [1.0.1] - 2026-08-07
 
 ### Fixed
