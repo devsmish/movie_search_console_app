@@ -1,6 +1,7 @@
 from app.utils.input_utils import safe_input
 from app.db.sql_connection import list_genres, genres_search
 from app.services.search_service import execute_search
+from app.i18n.translator import t, banner
 
 
 def get_genres(cursor) -> str | None:
@@ -21,29 +22,31 @@ def get_genres(cursor) -> str | None:
     Notes:
         - Handles KeyError if the genre data structure is invalid.
         - Handles errors in fetching genres and returns None if they occur.
+        - Genre names come from the database (Sakila dataset) and are not
+          translated — only the surrounding UI text is localized.
     """
     try:
         genres = list_genres(cursor)
     except Exception as e:
-        print(f"GET_GENRES: Error loading genres: {e}")
+        print(t("flows.genre.load_error", error=e))
         return None
     try:
         genre_names = {genre['category_id']: genre["name"] for genre in genres}
     except KeyError as e:
-        print(f"GET_GENRES: Data structure error: {e}")
+        print(t("flows.genre.data_error", error=e))
         return None
 
-    print("""
-=============================SELECT A GENRE FROM THE LIST===============================
-Select a genre by number or title from the list or [q] to return to the previous menu.""")
-    print(f"#   | Genre")
+    print(f"""
+{banner('flows.genre.header')}
+{t('flows.genre.instruction')}""")
+    print(f"{t('flows.genre.col_num'):<4}| {t('flows.genre.col_genre')}")
     for num, name in genre_names.items():
         print(f"{num:<4}| {name:<16}")
 
     while True:
         choice = safe_input(
-            "\nSelect a genre by number or title. \nPress [q] to return to the previous menu: ",
-            interrupt_msg="GET_GENRES: \033[31mThe user interrupted the program!\033[0m\n"
+            f"\n{t('flows.genre.input_prompt')}",
+            interrupt_msg=f"\033[31m{t('flows.genre.interrupt')}\033[0m\n"
         )
         if choice is None or choice == "q":
             return None
@@ -55,7 +58,7 @@ Select a genre by number or title from the list or [q] to return to the previous
             for name in genre_names.values():
                 if choice == name.lower():
                     return name
-        print("\033[31mInvalid genre. Try again.\033[0m")
+        print(f"\033[31m{t('flows.genre.invalid')}\033[0m")
 
 
 def genres_flow(cursor, mongo_collection) -> None:
