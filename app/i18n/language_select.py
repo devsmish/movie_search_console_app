@@ -14,8 +14,7 @@ Choose language / Wählen Sie die Sprache / Виберіть мову / Выбе
 3. Українська
 4. Русский"""
 
-_INVALID = "Invalid choice / Ungültige Auswahl / Невірний вибір / Неверный выбор. Try again / Versuchen Sie es \
-erneut / Спробуйте ще раз / Попробуйте снова."
+_INVALID = "Invalid choice / Ungültige Auswahl / Невірний вибір / Неверный выбор. Try again / Versuchen Sie es erneut / Спробуйте ще раз / Попробуйте снова."
 
 _INTERRUPTED = "Program closed / Programm geschlossen / Програму закрито / Программа закрыта."
 
