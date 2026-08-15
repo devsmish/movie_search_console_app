@@ -97,6 +97,10 @@ app/
 │   ├── input_utils.py        # Safe input handling & validation
 │   ├── pagination.py         # Paginated output for results
 │   └── year_utils.py         # Year normalization & parsing
+
+tests/                         # Pytest unit test suite (see "Testing" below)
+├── conftest.py               # Shared fixtures: fake cursor, fake Mongo collection
+├── test_*.py                 # One test module per app module, mirroring app/
 ```
 
 ---
@@ -135,6 +139,7 @@ The application follows a **layered structure**, where each module has a clear r
 * **MongoDB** (NoSQL database)
 * **PyMySQL** (MySQL connector)
 * **pymongo** (MongoDB driver)
+* **pytest** (Unit-tests)
 
 ---
 
@@ -180,6 +185,51 @@ pip install pymysql pymongo
 ```bash
 python app/main.py
 ```
+
+---
+
+## ✅ Testing
+
+The project has a pytest-based unit test suite (176 tests, ~99% coverage of
+the `app/` package) that runs entirely against fakes/mocks — no live MySQL
+or MongoDB instance is required.
+
+### Install test dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run the test suite
+
+```bash
+pytest
+```
+
+### Run with a coverage report
+
+```bash
+pytest --cov=app --cov-report=term-missing
+```
+
+### What's covered
+
+* Pure utility functions (`year_utils`, `input_utils`)
+* The i18n layer (`translator.py`, `language_select.py`), including a
+  check that all 4 locale JSON files define exactly the same set of keys
+* SQL query strings and the query-execution wrapper functions
+  (`../app/db/sql_connection.py`), via a fake cursor
+* MongoDB connection/query helpers, via a fake collection
+* All search flows (`keyword`, `genre`, `years`, `genre_years`) — happy
+  path, cancellation, `Ctrl+C`, and invalid-input retry loops
+* `execute_search`, `log_request`, and the statistics reports
+* Pagination navigation and edge cases (first/last page, invalid commands)
+* Menu routing (`main_menu`, `search_menu`, `stats_menu`), including a
+  regression test that DB connections close via `try/finally` even if a
+  submenu raises an unhandled exception
+
+Tests live under `tests/`, with shared fixtures (fake cursor, fake Mongo
+collection, frozen-time helper) in `../tests/conftest.py`.
 
 ---
 
@@ -246,20 +296,20 @@ This design provides:
 
 * Internationalization (multi-language support)
 
-### 📊 v2.1.0
+### 📊 v3.0.0
 
 * Unit-testing
 
-### 📊 v2.2.0
+### 📊 v4.0.0
 
 * Advanced analytics and reporting
 
-### 🔧 v2.3.0
+### 🔧 4.1.0
 
 * Project restructuring (modular architecture)
 * Improved documentation (docstrings)
 
-### 🔐 v3.0.0
+### 🔐 v4.2.0
 
 * Basic user authentication
 

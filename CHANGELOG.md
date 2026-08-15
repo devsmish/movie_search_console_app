@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.0] - 2026-08-15
+
+### Added
+- Pytest-based unit test suite: 176 tests, ~99% coverage of `app/`
+- `../tests/conftest.py` with reusable fakes: `FakeCursor` (mocks a pymysql
+  DictCursor) and `FakeMongoCollection` (mocks a pymongo Collection), plus
+  a `frozen_now` fixture for deterministic date/time-dependent tests
+- `../pytest.ini` and `requirements.txt` (pytest, pytest-cov)
+- Regression tests locking in the earlier bug fixes: keyword search
+  case-sensitivity, hardcoded `sakila.` schema, guaranteed connection
+  cleanup via `try/finally` in `main_menu`
+- A "Testing" section in README.md documenting how to run the suite
+
 ## [2.0.0] - 2026-08-14
 
 ### Added
