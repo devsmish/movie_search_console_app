@@ -44,7 +44,7 @@
   "flows": {
     "keyword": {
       "header": "STICHWORT EINGEBEN",
-      "instruction": "Geben Sie ein Wort oder einen Ausdruck zur Filmsuche ein, oder [q] um zum vorherigen Menü zurückzukehren.",
+      "instruction": "Geben Sie ein Wort oder einen Ausdruck zur Filmsuche ein, oder [q] um zum vorherigen Menü zurückzukehren.\nTipp: Sie können mehrere Wörter oder Wortteile eingeben (z. B. \"gone wind\") — ein Titel passt, wenn er alle davon enthält, unabhängig von der Reihenfolge.",
       "input_prompt": "Geben Sie Ihr Stichwort ein: ",
       "interrupt": "Der Benutzer hat das Programm unterbrochen!",
       "cancelled": "Zurück zum Suchmenü"

@@ -44,7 +44,7 @@
   "flows": {
     "keyword": {
       "header": "ENTER KEYWORD",
-      "instruction": "Enter a word or phrase to search for a movie, or [q] to return to the previous menu.",
+      "instruction": "Enter a word or phrase to search for a movie, or [q] to return to the previous menu.\nTip: you can enter several words or word parts (e.g. \"gone wind\") — a title matches if it contains all of them, in any order.",
       "input_prompt": "Enter your keyword: ",
       "interrupt": "The user interrupted the program!",
       "cancelled": "Return to search menu"
