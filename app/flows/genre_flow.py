@@ -4,19 +4,21 @@ from app.services.search_service import execute_search
 from app.i18n.translator import t, banner
 
 
-def get_genres(cursor) -> str | None:
+def get_genres(cursor) -> list[str] | None:
     """
-    Prompts the user to select a genre from the database.
+    Prompts the user to select one or more genres from the database.
 
     Fetches the list of genres once using `list_genres(cursor)` and displays
-    them. The user can select a genre by number or title. Returns the
-    selected genre name.
+    them. The user can select genres by number or title, and may enter
+    several separated by commas (e.g. "1,3" or "action, comedy") to search
+    across multiple genres at once.
 
     Args:
         cursor: Database cursor used to fetch genres from the database.
 
     Returns:
-        str | None: The name of the selected genre, or None if the user quits,
+        list[str] | None: The list of selected genre names (in the order
+        entered, duplicates removed), or None if the user quits,
         interrupts input, or an error occurs.
 
     Notes:
@@ -24,6 +26,9 @@ def get_genres(cursor) -> str | None:
         - Handles errors in fetching genres and returns None if they occur.
         - Genre names come from the database (Sakila dataset) and are not
           translated — only the surrounding UI text is localized.
+        - If any comma-separated entry doesn't match a genre, the whole
+          input is rejected and the user is asked to try again, rather
+          than silently accepting a partial selection.
     """
     try:
         genres = list_genres(cursor)
@@ -43,6 +48,8 @@ def get_genres(cursor) -> str | None:
     for num, name in genre_names.items():
         print(f"{num:<4}| {name:<16}")
 
+    lookup_by_name = {name.lower(): name for name in genre_names.values()}
+
     while True:
         choice = safe_input(
             f"\n{t('flows.genre.input_prompt')}",
@@ -50,23 +57,37 @@ def get_genres(cursor) -> str | None:
         )
         if choice is None or choice == "q":
             return None
-        if choice.isdigit():
-            genre = genre_names.get(int(choice))
-            if genre:
-                return genre
-        else:
-            for name in genre_names.values():
-                if choice == name.lower():
-                    return name
+
+        tokens = [token.strip() for token in choice.split(",") if token.strip()]
+        if not tokens:
+            print(f"\033[31m{t('flows.genre.invalid')}\033[0m")
+            continue
+
+        selected = []
+        all_valid = True
+        for token in tokens:
+            if token.isdigit():
+                genre = genre_names.get(int(token))
+            else:
+                genre = lookup_by_name.get(token)
+            if genre is None:
+                all_valid = False
+                break
+            if genre not in selected:
+                selected.append(genre)
+
+        if all_valid and selected:
+            return selected
+
         print(f"\033[31m{t('flows.genre.invalid')}\033[0m")
 
 
 def genres_flow(cursor, mongo_collection) -> None:
     """
-    Handles the flow for searching by genre.
+    Handles the flow for searching by one or more genres.
 
-    Repeatedly prompts the user to select a genre using `get_genres`.
-    For each selected genre, executes a search via `execute_search` with
+    Repeatedly prompts the user to select genres using `get_genres`.
+    For each selection, executes a search via `execute_search` with
     the results logged to MongoDB.
 
     Args:
@@ -77,12 +98,12 @@ def genres_flow(cursor, mongo_collection) -> None:
         None: Results are printed to the console and logged to MongoDB.
     """
     while True:
-        genre = get_genres(cursor)
-        if genre is None:
+        genres = get_genres(cursor)
+        if genres is None:
             break
         execute_search(
-            search_func=lambda: genres_search(cursor, genre),
+            search_func=lambda: genres_search(cursor, genres),
             mongo_collection=mongo_collection,
             search_type="genre",
-            params={"genre": genre}
+            params={"genres": genres}
         )
