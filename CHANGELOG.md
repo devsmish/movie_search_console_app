@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.0.0] - 2026-08-17
+
+### Added
+- Multi-word / partial-word keyword search: entering several words or
+  word fragments (e.g. "gone wind") now matches titles containing all of
+  them, in any order (e.g. "Gone with the Wind"), instead of only
+  matching the exact typed phrase as one literal substring
+- `app.db.sql_queries.build_keyword_query(word_count)`: builds a
+  dynamically-sized, still fully parameterized query with one
+  `LOWER(f.title) LIKE %s` condition per search term, AND-joined
+- A word cap (`MAX_KEYWORD_WORDS = 10` in `sql_connection.py`) so a very
+  long pasted string can't blow up the query into dozens of conditions
+- Updated the keyword-search prompt in all 4 locales with a short tip
+  about multi-word/partial-word search
+- Tests covering word splitting, de-duplication, the word cap, and
+  empty/whitespace-only input for the new search behavior
+
 ## [3.0.0] - 2026-08-15
 
 ### Added
