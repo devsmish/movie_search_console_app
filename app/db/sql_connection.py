@@ -40,6 +40,7 @@ def get_connection() -> "pymysql.connections.Connection":
         raise Exception(t("db.mysql_error", error=e))
 
 MAX_KEYWORD_WORDS = 10
+MAX_SELECTED_GENRES = 16
 
 
 def keywords_search(keyword: str, cursor) -> list[dict]:
@@ -80,7 +81,7 @@ def keywords_search(keyword: str, cursor) -> list[dict]:
     if not words:
         return []
 
-    query = build_keyword_query(len(words))
+    query = build_keyword(len(words))
     params = tuple(f"%{word}%" for word in words)
     cursor.execute(query, params)
     return cursor.fetchall()
@@ -102,13 +103,19 @@ def list_genres(cursor) -> list[dict]:
     cursor.execute(genres_list)
     return cursor.fetchall()
 
-def genre_years_search(cursor, genre: str, start_year: int = 1990, end_year: int = 2025) -> list[dict]:
+def genre_years_search(
+    cursor, genres: list[str], start_year: int = 1990, end_year: int = 2025
+) -> list[dict]:
     """
-    Searches for movies by genre within a specified year range.
+    Searches for movies by one or more genres within a specified year range.
+
+    A film matches if it belongs to ANY of the given genres (OR semantics —
+    each film has exactly one genre in this schema, so "genres" here means
+    "match any of these", not "must have all of these").
 
     Args:
         cursor: Active MySQL cursor (DictCursor).
-        genre (str): Genre name.
+        genres (list[str]): One or more genre names to match.
         start_year (int, optional): Start of year range. Defaults to 1990.
         end_year (int, optional): End of year range. Defaults to 2025.
 
@@ -121,8 +128,21 @@ def genre_years_search(cursor, genre: str, start_year: int = 1990, end_year: int
                 "release_year": int
                 "description": str
             }
+        Returns an empty list without querying the database if `genres`
+        is empty.
+
+    Notes:
+        - Duplicate genres are ignored.
+        - At most MAX_SELECTED_GENRES genres are used; further ones are
+          silently dropped.
     """
-    cursor.execute(genres_years_query, (genre, start_year, end_year,))
+    unique_genres = list(dict.fromkeys(genres))[:MAX_SELECTED_GENRES]
+    if not unique_genres:
+        return []
+
+    query = build_genres_years(len(unique_genres))
+    params = tuple(unique_genres) + (start_year, end_year)
+    cursor.execute(query, params)
     return cursor.fetchall()
 
 def years_search(cursor, start_year: int = 1990, end_year: int = 2025) -> list[dict]:
@@ -147,16 +167,19 @@ def years_search(cursor, start_year: int = 1990, end_year: int = 2025) -> list[d
     cursor.execute(years_query, (start_year, end_year,))
     return cursor.fetchall()
 
-def genres_search(cursor, genre: str) -> list[dict]:
+def genres_search(cursor, genres: list[str]) -> list[dict]:
     """
-    Searches for movies by a specific genre.
+    Searches for movies by one or more genres.
+
+    A film matches if it belongs to ANY of the given genres (OR semantics —
+    each film has exactly one genre in this schema).
 
     Args:
         cursor: Active MySQL cursor (DictCursor).
-        genre (str): Genre name.
+        genres (list[str]): One or more genre names to match.
 
     Returns:
-        list[dict]: List of movies belonging to the given genre:
+        list[dict]: List of movies belonging to any of the given genres:
             {
                 "film_id": int,
                 "title": str,
@@ -164,8 +187,20 @@ def genres_search(cursor, genre: str) -> list[dict]:
                 "release_year": int
                 "description": str
             }
+        Returns an empty list without querying the database if `genres`
+        is empty.
+
+    Notes:
+        - Duplicate genres are ignored.
+        - At most MAX_SELECTED_GENRES genres are used; further ones are
+          silently dropped.
     """
-    cursor.execute(genres_query, (genre,))
+    unique_genres = list(dict.fromkeys(genres))[:MAX_SELECTED_GENRES]
+    if not unique_genres:
+        return []
+
+    query = build_genres(len(unique_genres))
+    cursor.execute(query, tuple(unique_genres))
     return cursor.fetchall()
 
 def range_years(cursor) -> list[dict]:
@@ -185,7 +220,7 @@ def range_years(cursor) -> list[dict]:
     cursor.execute(range_years_query)
     return cursor.fetchall()
 
-def build_keyword_query(word_count: int) -> str:
+def build_keyword(word_count: int) -> str:
     """
     Builds a keyword search query that requires `word_count` independent
     substrings to ALL appear somewhere in the film title, in any order.
@@ -214,3 +249,53 @@ def build_keyword_query(word_count: int) -> str:
     full_query = multiword_query + ' ' + conditions
 
     return full_query
+
+def build_genres(genre_count: int) -> str:
+    """
+    Builds a genre search query that matches films belonging to ANY of
+    `genre_count` given genres (an OR/IN condition, not AND).
+
+    Genres are a many-to-one relationship in this schema (each film has
+    exactly one category), so "search by several genres" means "match
+    Action OR Comedy OR ...", unlike the AND semantics used for multi-word
+    keyword search. A plain `%s` per genre, combined via SQL's `IN (...)`,
+    keeps this fully parameterized regardless of how many genres are
+    selected.
+
+    Args:
+        genre_count (int): Number of genres to match against (must be >= 1).
+
+    Returns:
+        str: A parameterized SQL query with `genre_count` placeholders.
+
+    Raises:
+        ValueError: If genre_count is less than 1.
+    """
+    if genre_count < 1:
+        raise ValueError("genre_count must be at least 1")
+
+    placeholders = ", ".join(["%s"] * genre_count)
+    return build_genres_query.format(placeholders=placeholders)
+
+
+def build_genres_years(genre_count: int) -> str:
+    """
+    Builds a combined genre + year-range search query, matching films that
+    belong to ANY of `genre_count` given genres AND fall within the given
+    release-year range.
+
+    Args:
+        genre_count (int): Number of genres to match against (must be >= 1).
+
+    Returns:
+        str: A parameterized SQL query with `genre_count + 2` placeholders
+        (one per genre, plus start_year and end_year).
+
+    Raises:
+        ValueError: If genre_count is less than 1.
+    """
+    if genre_count < 1:
+        raise ValueError("genre_count must be at least 1")
+
+    placeholders = ", ".join(["%s"] * genre_count)
+    return build_genres_years_query.format(placeholders=placeholders)
