@@ -1,3 +1,5 @@
+import pytest
+
 from app.db import sql_queries
 
 
@@ -31,6 +33,38 @@ class TestNoHardcodedSchema:
     def test_no_query_references_sakila_schema_directly(self):
         for query in self.ALL_QUERIES:
             assert "sakila." not in query, f"Query still hardcodes schema: {query!r}"
+
+
+class TestBuildKeywordQuery:
+    """
+    Tests for the dynamic multi-word/partial-word keyword query builder.
+    """
+
+    def test_single_word_matches_static_keyword_query(self):
+        assert sql_queries.build_keyword_query(1) == sql_queries.keyword_query
+
+    def test_uses_lower_not_upper(self):
+        assert "LOWER(f.title)" in sql_queries.build_keyword_query(3)
+        assert "UPPER(" not in sql_queries.build_keyword_query(3)
+
+    def test_no_hardcoded_schema(self):
+        assert "sakila." not in sql_queries.build_keyword_query(3)
+
+    def test_placeholder_count_matches_word_count(self):
+        for n in (1, 2, 3, 5, 10):
+            assert sql_queries.build_keyword_query(n).count("%s") == n
+
+    def test_conditions_are_joined_with_and(self):
+        query = sql_queries.build_keyword_query(3)
+        assert query.count(" AND ") == 2  # 3 conditions -> 2 "AND" joins
+
+    def test_zero_word_count_raises_value_error(self):
+        with pytest.raises(ValueError):
+            sql_queries.build_keyword_query(0)
+
+    def test_negative_word_count_raises_value_error(self):
+        with pytest.raises(ValueError):
+            sql_queries.build_keyword_query(-1)
 
 
 class TestQueriesAreParameterized:
