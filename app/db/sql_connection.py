@@ -39,12 +39,22 @@ def get_connection() -> "pymysql.connections.Connection":
     except Exception as e:
         raise Exception(t("db.mysql_error", error=e))
 
+MAX_KEYWORD_WORDS = 10
+
+
 def keywords_search(keyword: str, cursor) -> list[dict]:
     """
-    Searches for movies by keyword in title.
+    Searches for movies by one or more keywords/word-parts in the title.
+
+    The input is split on whitespace into individual search terms. A film
+    matches only if its title contains ALL of the entered terms as
+    substrings, in any order and anywhere in the title — so "gone wind"
+    and "wind gone" both match "Gone with the Wind", and each term can
+    also be a partial word (e.g. "matr" matches "Matrix").
 
     Args:
-        keyword (str): Keyword or phrase to search for.
+        keyword (str): Keyword, phrase, or several words/word-parts to
+            search for. Words are separated by whitespace.
         cursor: Active MySQL cursor (DictCursor).
 
     Returns:
@@ -56,8 +66,23 @@ def keywords_search(keyword: str, cursor) -> list[dict]:
                 "release_year": int
                 "description": str
             }
+        Returns an empty list without querying the database if `keyword`
+        contains no usable words (e.g. empty or whitespace-only).
+
+    Notes:
+        - Duplicate words are ignored (searching "the the matrix" behaves
+          the same as "the matrix").
+        - At most MAX_KEYWORD_WORDS terms are used; any further words are
+          silently dropped, so a very long pasted string can't blow up the
+          query into dozens of AND-joined conditions.
     """
-    cursor.execute(keyword_query, (f"%{keyword.lower()}%",))
+    words = list(dict.fromkeys(keyword.lower().split()))[:MAX_KEYWORD_WORDS]
+    if not words:
+        return []
+
+    query = build_keyword_query(len(words))
+    params = tuple(f"%{word}%" for word in words)
+    cursor.execute(query, params)
     return cursor.fetchall()
 
 def list_genres(cursor) -> list[dict]:
@@ -159,3 +184,33 @@ def range_years(cursor) -> list[dict]:
     """
     cursor.execute(range_years_query)
     return cursor.fetchall()
+
+def build_keyword_query(word_count: int) -> str:
+    """
+    Builds a keyword search query that requires `word_count` independent
+    substrings to ALL appear somewhere in the film title, in any order.
+
+    This is what makes multi-word searches like "gone wind" match a title
+    like "Gone with the Wind": each word is checked with its own
+    `LOWER(f.title) LIKE %s`, and the individual checks are combined with
+    AND, so word order and adjacency in the title don't matter. Each
+    placeholder is still filled in with a separate `%word%` pattern by the
+    caller, so this remains fully parameterized (no SQL injection risk)
+    regardless of how many words the user typed.
+
+    Args:
+        word_count (int): Number of independent search terms (must be >= 1).
+
+    Returns:
+        str: A parameterized SQL query with `word_count` placeholders.
+
+    Raises:
+        ValueError: If word_count is less than 1.
+    """
+    if word_count < 1:
+        raise ValueError("word_count must be at least 1")
+
+    conditions = " AND ".join(["LOWER(f.title) LIKE %s"] * word_count)
+    full_query = multiword_query + ' ' + conditions
+
+    return full_query

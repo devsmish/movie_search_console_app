@@ -22,6 +22,22 @@ class TestKeywordFlow:
         assert len(fake_mongo_collection.inserted) == 1
         assert fake_mongo_collection.inserted[0]["params"] == {"keyword": "matrix"}
 
+    def test_multi_word_keyword_is_split_into_separate_search_terms(self, fake_mongo_collection, monkeypatch):
+        # End-to-end: typing "gone wind" should reach the DB layer as two
+        # independent AND-joined LIKE conditions, not one literal phrase.
+        from tests.conftest import FakeCursor
+
+        cursor = FakeCursor(fetchall_result=[
+            {"film_id": 1, "title": "Gone with the Wind", "name": "Drama", "release_year": 1939}
+        ])
+        responses = iter(["gone wind", "q", "q"])
+        monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))
+        keyword_flow(cursor, fake_mongo_collection)
+
+        assert cursor.last_params == ("%gone%", "%wind%")
+        assert fake_mongo_collection.inserted[0]["params"] == {"keyword": "gone wind"}
+        assert fake_mongo_collection.inserted[0]["results_count"] == 1
+
     def test_quit_immediately_performs_no_search(self, fake_cursor, fake_mongo_collection, monkeypatch):
         monkeypatch.setattr("builtins.input", lambda prompt="": "q")
         keyword_flow(fake_cursor, fake_mongo_collection)
