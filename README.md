@@ -302,14 +302,23 @@ This design provides:
 
 ### 📊 v4.0.0
 
+* Multi-word search
+
+### 📊 v4.1.0
+
+* Multi-genre search
+
+### 📊 v4.2.0
+
 * Advanced analytics and reporting
 
-### 🔧 4.1.0
+### 🔧 4.3.0
 
 * Project restructuring (modular architecture)
 * Improved documentation (docstrings)
+* Formatting output
 
-### 🔐 v4.2.0
+### 🔐 v5.0.0
 
 * Basic user authentication
 
