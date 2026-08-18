@@ -9,10 +9,10 @@ class TestLogRequestHappyPath:
         assert len(fake_mongo_collection.inserted) == 1
 
     def test_document_contains_expected_fields(self, fake_mongo_collection):
-        log_request(fake_mongo_collection, "genre", {"genre": "Comedy"}, 10, 4.5, True)
+        log_request(fake_mongo_collection, "genre", {"genres": ["Comedy"]}, 10, 4.5, True)
         doc = fake_mongo_collection.inserted[0]
         assert doc["search_type"] == "genre"
-        assert doc["params"] == {"genre": "Comedy"}
+        assert doc["params"] == {"genres": ["Comedy"]}
         assert doc["results_count"] == 10
         assert doc["duration_ms"] == 4.5
         assert doc["success"] is True

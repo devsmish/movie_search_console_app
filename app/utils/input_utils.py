@@ -34,11 +34,14 @@ def build_query_key(search_type: str, params: dict) -> str:
     Args:
         search_type (str): The type of search ('keyword', 'genre', 'years', 'genre_years').
         params (dict): Dictionary containing relevant parameters for the search type.
+            For 'genre' and 'genre_years', params['genres'] is a list of one
+            or more genre names (multi-genre search selects films matching
+            ANY of them).
 
     Returns:
         str: A formatted string used as a unique query key. Example outputs:
             - 'keyword_rock'
-            - 'genre_jazz'
+            - 'genre_jazz' (single genre) or 'genre_jazz+comedy' (multiple)
             - 'years_1990_2000'
             - 'genre_years_rock_1990_2000'
           Returns 'unknown_query' if expected keys are missing.
@@ -50,11 +53,11 @@ def build_query_key(search_type: str, params: dict) -> str:
         if search_type == "keyword":
             return f"{search_type}_{params['keyword']}"
         if search_type == "genre":
-            return f"{search_type}_{params['genre']}"
+            return f"{search_type}_{'+'.join(params['genres'])}"
         if search_type == "years":
             return f"{search_type}_{params['start_year']}_{params['end_year']}"
         if search_type == "genre_years":
-            return f"{search_type}_{params['genre']}_{params['start_year']}_{params['end_year']}"
+            return f"{search_type}_{'+'.join(params['genres'])}_{params['start_year']}_{params['end_year']}"
     except KeyError as e:
         print(f"UNKNOWN_QUERY: Error in keys: {e}")
         return "unknown_query"

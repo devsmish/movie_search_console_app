@@ -5,13 +5,6 @@
 # (see app/db/sql_connection.py), so queries work regardless of which
 # database name is configured (e.g. not necessarily "sakila").
 
-# MySQL Queries
-#
-# Note: tables are referenced without a hardcoded schema prefix on purpose —
-# the connection already selects the target database via Config.MYSQL_DATABASE
-# (see app/db/sql_connection.py), so queries work regardless of which
-# database name is configured (e.g. not necessarily "sakila").
-
 # Kept as a plain string (rather than build_keyword_query(1)) for backward
 # compatibility and as a readable reference for the single-word case.
 # Actual keyword searches always go through build_keyword_query() so that
@@ -47,6 +40,22 @@ ON f.film_id = fc.film_id
 JOIN category as c
 ON fc.category_id = c.category_id
 WHERE c.name = %s"""
+
+build_genres_query = """
+SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM film as f
+JOIN film_category as fc
+ON f.film_id = fc.film_id
+JOIN category as c
+ON fc.category_id = c.category_id
+WHERE c.name IN ({placeholders})"""
+
+build_genres_years_query = """
+SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM film as f
+JOIN film_category as fc
+ON f.film_id = fc.film_id
+JOIN category as c
+ON fc.category_id = c.category_id
+WHERE c.name IN ({placeholders}) AND f.release_year BETWEEN %s AND %s"""
 
 years_query = """
 SELECT f.film_id, f.title, c.name, f.release_year, f.description FROM film as f
