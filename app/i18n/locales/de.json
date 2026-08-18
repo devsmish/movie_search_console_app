@@ -53,7 +53,7 @@
       "load_error": "Fehler beim Laden der Genres: {error}",
       "data_error": "Fehler in der Datenstruktur: {error}",
       "header": "GENRE AUS DER LISTE AUSWÄHLEN",
-      "instruction": "Wählen Sie ein Genre anhand der Nummer oder des Namens aus der Liste, oder [q] um zum vorherigen Menü zurückzukehren.",
+      "instruction": "Wählen Sie ein Genre anhand der Nummer oder des Namens aus der Liste, oder [q] um zum vorherigen Menü zurückzukehren.\nTipp: Sie können mehrere Genres gleichzeitig auswählen, durch Kommas getrennt (z. B. \"1,3\" oder \"action, comedy\") — ein Film passt, wenn er zu einem davon gehört.",
       "col_num": "#",
       "col_genre": "Genre",
       "input_prompt": "Genre anhand der Nummer oder des Namens auswählen.\nDrücken Sie [q], um zum vorherigen Menü zurückzukehren: ",

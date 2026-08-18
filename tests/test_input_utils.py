@@ -62,19 +62,28 @@ class TestBuildQueryKey:
     def test_keyword_query_key(self):
         assert build_query_key("keyword", {"keyword": "matrix"}) == "keyword_matrix"
 
-    def test_genre_query_key(self):
-        assert build_query_key("genre", {"genre": "Comedy"}) == "genre_Comedy"
+    def test_genre_query_key_single_genre(self):
+        assert build_query_key("genre", {"genres": ["Comedy"]}) == "genre_Comedy"
+
+    def test_genre_query_key_multiple_genres(self):
+        assert build_query_key("genre", {"genres": ["Comedy", "Action"]}) == "genre_Comedy+Action"
 
     def test_years_query_key(self):
         assert build_query_key(
             "years", {"start_year": 1990, "end_year": 2000}
         ) == "years_1990_2000"
 
-    def test_genre_years_query_key(self):
+    def test_genre_years_query_key_single_genre(self):
         assert build_query_key(
             "genre_years",
-            {"genre": "Action", "start_year": 1990, "end_year": 2000},
+            {"genres": ["Action"], "start_year": 1990, "end_year": 2000},
         ) == "genre_years_Action_1990_2000"
+
+    def test_genre_years_query_key_multiple_genres(self):
+        assert build_query_key(
+            "genre_years",
+            {"genres": ["Action", "Comedy"], "start_year": 1990, "end_year": 2000},
+        ) == "genre_years_Action+Comedy_1990_2000"
 
     def test_missing_required_key_returns_unknown_query(self, capsys):
         result = build_query_key("keyword", {})

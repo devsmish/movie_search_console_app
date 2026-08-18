@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.1.0] - 2026-08-18
+
+### Added
+- Multi-genre search: selecting several genres at once (e.g. "1,3" or
+  "action, comedy" in the genre menu) now matches films belonging to ANY
+  of them (OR semantics — a film has exactly one genre in this schema),
+  for both the plain genre search and the combined genre+years search
+- `app.db.sql_queries.build_genres_query(genre_count)` and
+  `build_genres_years_query(genre_count)`: build dynamically-sized,
+  fully parameterized `IN (...)` queries for one or more genres
+- A genre cap (`MAX_SELECTED_GENRES = 20` in `sql_connection.py`) as a
+  defensive limit, mirroring the existing keyword-search word cap
+- Updated the genre-selection prompt in all 4 locales with a short tip
+  about comma-separated multi-genre selection
+- Tests covering multi-genre selection, de-duplication, order
+  preservation, the "one invalid entry rejects the whole input" rule, and
+  the new query builders
+
+### Changed
+- `genres_search()` and `genre_years_search()` now take a `list[str]` of
+  genre names instead of a single `str`
+- Logged search params for `"genre"` and `"genre_years"` searches now use
+  a `"genres"` list field instead of a single `"genre"` string field, and
+  `build_query_key()` joins multiple genre names with `+`
+  (e.g. `genre_Action+Comedy`)
+
 ## [4.0.0] - 2026-08-17
 
 ### Added

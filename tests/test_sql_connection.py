@@ -117,10 +117,35 @@ class TestListGenres:
 
 
 class TestGenresSearch:
-    def test_executes_genres_query_with_genre_param(self, fake_cursor):
-        genres_search(fake_cursor, "Comedy")
-        assert fake_cursor.last_query == sql_queries.genres_query
+    def test_single_genre(self, fake_cursor):
+        genres_search(fake_cursor, ["Comedy"])
+        assert fake_cursor.last_query == sql_queries.build_genres_query(1)
         assert fake_cursor.last_params == ("Comedy",)
+
+    def test_multiple_genres_use_in_clause(self, fake_cursor):
+        genres_search(fake_cursor, ["Comedy", "Action"])
+        assert "IN (%s, %s)" in fake_cursor.last_query
+        assert fake_cursor.last_params == ("Comedy", "Action")
+
+    def test_preserves_selection_order(self, fake_cursor):
+        genres_search(fake_cursor, ["Action", "Comedy", "Drama"])
+        assert fake_cursor.last_params == ("Action", "Comedy", "Drama")
+
+    def test_deduplicates_repeated_genres(self, fake_cursor):
+        genres_search(fake_cursor, ["Action", "Comedy", "Action"])
+        assert fake_cursor.last_params == ("Action", "Comedy")
+
+    def test_empty_list_returns_empty_without_querying(self, fake_cursor):
+        result = genres_search(fake_cursor, [])
+        assert result == []
+        assert fake_cursor.last_query is None
+
+    def test_caps_at_max_selected_genres(self, fake_cursor):
+        from app.db.sql_connection import MAX_SELECTED_GENRES
+
+        genres = [f"Genre{i}" for i in range(MAX_SELECTED_GENRES + 5)]
+        genres_search(fake_cursor, genres)
+        assert len(fake_cursor.last_params) == MAX_SELECTED_GENRES
 
 
 class TestYearsSearch:
@@ -135,10 +160,24 @@ class TestYearsSearch:
 
 
 class TestGenreYearsSearch:
-    def test_executes_combined_query_with_all_params(self, fake_cursor):
-        genre_years_search(fake_cursor, "Action", 1995, 2005)
-        assert fake_cursor.last_query == sql_queries.genres_years_query
+    def test_single_genre(self, fake_cursor):
+        genre_years_search(fake_cursor, ["Action"], 1995, 2005)
+        assert fake_cursor.last_query == sql_queries.build_genres_years_query(1)
         assert fake_cursor.last_params == ("Action", 1995, 2005)
+
+    def test_multiple_genres_use_in_clause_plus_year_range(self, fake_cursor):
+        genre_years_search(fake_cursor, ["Action", "Comedy"], 1995, 2005)
+        assert "IN (%s, %s)" in fake_cursor.last_query
+        assert fake_cursor.last_params == ("Action", "Comedy", 1995, 2005)
+
+    def test_deduplicates_repeated_genres(self, fake_cursor):
+        genre_years_search(fake_cursor, ["Action", "Action"], 1995, 2005)
+        assert fake_cursor.last_params == ("Action", 1995, 2005)
+
+    def test_empty_list_returns_empty_without_querying(self, fake_cursor):
+        result = genre_years_search(fake_cursor, [], 1995, 2005)
+        assert result == []
+        assert fake_cursor.last_query is None
 
 
 class TestRangeYears:

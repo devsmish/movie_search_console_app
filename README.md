@@ -15,8 +15,8 @@ non-relational databases, modular architecture, and CLI interaction design.
 
 ### 🔍 Search Functionality
 
-* Search movies by **keyword**
-* Filter by **genre**
+* Search movies by **keyword** — supports multiple words or partial words (e.g. "gone wind" matches "Gone with the Wind"), matched in any order
+* Filter by **one or more genres** — select several at once (e.g. "1,3" or "action, comedy"); a film matches if it belongs to any of them
 * Filter by **years**
 * Search by **year or range of years**
 * Combined search (**genre + year range**)
@@ -193,12 +193,6 @@ python app/main.py
 The project has a pytest-based unit test suite (176 tests, ~99% coverage of
 the `app/` package) that runs entirely against fakes/mocks — no live MySQL
 or MongoDB instance is required.
-
-### Install test dependencies
-
-```bash
-pip install -r requirements.txt
-```
 
 ### Run the test suite
 
