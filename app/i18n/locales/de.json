@@ -28,9 +28,14 @@
     },
     "stats": {
       "header": "STATISTIKMENÜ",
-      "prompt": "Wählen Sie einen Berichtstyp (1, 2 oder Q):",
+      "prompt": "Wählen Sie einen Berichtstyp (1–7 oder Q):",
       "option_top5": "1. TOP-5 Suchanfragen.",
       "option_last5": "2. 5 letzte Suchanfragen.",
+      "option_zero_results": "3. Anfragen ohne Ergebnisse.",
+      "option_search_type_breakdown": "4. Aufschlüsselung nach Suchtyp.",
+      "option_avg_duration": "5. Durchschnittliche Dauer nach Suchtyp.",
+      "option_activity_by_day": "6. Suchaktivität nach Tag.",
+      "option_success_rate": "7. Erfolgsquote nach Suchtyp.",
       "option_back": "Q. Zurück zum vorherigen Menü.",
       "input_prompt": "Statistikbericht wählen: ",
       "interrupt": "Der Benutzer hat das Statistikmenü unterbrochen!\nZurück zum Hauptmenü"
@@ -102,6 +107,37 @@
       "col_search_type": "Suchtyp",
       "col_results_count": "Ergebnisanzahl",
       "col_duration": "Dauer, ms"
+    },
+    "no_data": "Noch keine Daten.",
+    "zero_results": {
+      "header": "ANFRAGEN OHNE ERGEBNISSE",
+      "col_query": "Anfrageschlüssel",
+      "col_count": "Häufigkeit",
+      "col_last_seen": "Zuletzt gesehen"
+    },
+    "search_type_breakdown": {
+      "header": "AUFSCHLÜSSELUNG NACH SUCHTYP",
+      "col_type": "Suchtyp",
+      "col_count": "Anzahl",
+      "col_share": "Anteil"
+    },
+    "avg_duration": {
+      "header": "DURCHSCHNITTLICHE DAUER NACH SUCHTYP",
+      "col_type": "Suchtyp",
+      "col_avg_duration": "Ø Dauer, ms",
+      "col_count": "Anzahl"
+    },
+    "activity_by_day": {
+      "header": "SUCHAKTIVITÄT NACH TAG",
+      "col_date": "Datum",
+      "col_count": "Suchanfragen"
+    },
+    "success_rate": {
+      "header": "ERFOLGSQUOTE NACH SUCHTYP",
+      "col_type": "Suchtyp",
+      "col_total": "Gesamt",
+      "col_successful": "Erfolgreich",
+      "col_rate": "Erfolgsquote"
     }
   },
   "search_service": {

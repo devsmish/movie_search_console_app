@@ -28,9 +28,14 @@
     },
     "stats": {
       "header": "STATISTICS MENU",
-      "prompt": "Select a report option to view (1, 2 or Q):",
+      "prompt": "Select a report option to view (1-7 or Q):",
       "option_top5": "1. TOP-5 search queries.",
       "option_last5": "2. 5 most recent search queries.",
+      "option_zero_results": "3. Zero-result queries.",
+      "option_search_type_breakdown": "4. Search type breakdown.",
+      "option_avg_duration": "5. Average duration by search type.",
+      "option_activity_by_day": "6. Search activity by day.",
+      "option_success_rate": "7. Success rate by search type.",
       "option_back": "Q. Return to the previous menu.",
       "input_prompt": "Choice your statistic report: ",
       "interrupt": "The user interrupted the statistic menu!\nReturn to the main menu"
@@ -102,6 +107,37 @@
       "col_search_type": "Search Type",
       "col_results_count": "Results Count",
       "col_duration": "Duration, ms"
+    },
+    "no_data": "No data yet.",
+    "zero_results": {
+      "header": "ZERO-RESULT QUERIES",
+      "col_query": "Query Key",
+      "col_count": "Times Searched",
+      "col_last_seen": "Last Seen"
+    },
+    "search_type_breakdown": {
+      "header": "SEARCH TYPE BREAKDOWN",
+      "col_type": "Search Type",
+      "col_count": "Count",
+      "col_share": "Share"
+    },
+    "avg_duration": {
+      "header": "AVERAGE DURATION BY SEARCH TYPE",
+      "col_type": "Search Type",
+      "col_avg_duration": "Avg Duration, ms",
+      "col_count": "Count"
+    },
+    "activity_by_day": {
+      "header": "SEARCH ACTIVITY BY DAY",
+      "col_date": "Date",
+      "col_count": "Searches"
+    },
+    "success_rate": {
+      "header": "SUCCESS RATE BY SEARCH TYPE",
+      "col_type": "Search Type",
+      "col_total": "Total",
+      "col_successful": "Successful",
+      "col_rate": "Success Rate"
     }
   },
   "search_service": {
