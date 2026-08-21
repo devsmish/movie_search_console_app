@@ -2,10 +2,13 @@ from app.utils.input_utils import safe_input
 from app.services.stats_service import (
     activity_by_day_requests,
     avg_duration_requests,
+    genre_co_occurrence_requests,
     last5_requests,
     search_type_breakdown_requests,
     success_rate_requests,
     top5_requests,
+    top_genres_requests,
+    year_range_popularity_requests,
     zero_result_requests,
 )
 from app.i18n.translator import t, banner
@@ -27,6 +30,9 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
     - Average duration by search type
     - Search activity by day
     - Success rate by search type
+    - Popular year ranges (by decade)
+    - Top individual genres
+    - Genre co-occurrence (which genres get searched together)
 
     Args:
         mongo_collection (pymongo.collection.Collection): MongoDB collection containing search logs.
@@ -49,6 +55,9 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
 {t('menu.stats.option_avg_duration')}
 {t('menu.stats.option_activity_by_day')}
 {t('menu.stats.option_success_rate')}
+{t('menu.stats.option_year_range_popularity')}
+{t('menu.stats.option_top_genres')}
+{t('menu.stats.option_genre_co_occurrence')}
 {t('menu.stats.option_back')}""")
         statistic_choice = safe_input(
             t("menu.stats.input_prompt"),
@@ -71,6 +80,12 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
             activity_by_day_requests(mongo_collection)
         elif statistic_choice == "7":
             success_rate_requests(mongo_collection)
+        elif statistic_choice == "8":
+            year_range_popularity_requests(mongo_collection)
+        elif statistic_choice == "9":
+            top_genres_requests(mongo_collection)
+        elif statistic_choice == "10":
+            genre_co_occurrence_requests(mongo_collection)
         elif statistic_choice.lower() == "q":
             break
         else:
