@@ -1,13 +1,17 @@
 from app.db.mongo_queries import (
     avg_duration_by_search_type,
+    genre_combinations_raw,
     last5_queries,
     search_type_breakdown,
     searches_per_day,
     success_rate_by_search_type,
     top5_queries,
+    top_individual_genres,
+    year_range_popularity,
     zero_result_queries,
 )
 from app.i18n.translator import t, banner
+from itertools import combinations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -189,3 +193,98 @@ def success_rate_requests(mongo_collection: "pymongo.collection.Collection") -> 
     print("-" * 88)
     for row in result:
         print(f"{row['_id']:<20}| {row['total']:<8}| {row['successful']:<12}| {row['success_rate_pct']:>5.1f}%")
+
+
+def year_range_popularity_requests(mongo_collection: "pymongo.collection.Collection") -> None:
+    """
+    Displays the most popular searched release-year ranges, bucketed by
+    decade of `start_year` (e.g. a search for 1993-2001 counts towards
+    the 1990s). Covers both plain year searches and combined
+    genre+years searches.
+
+    Args:
+        mongo_collection (pymongo.collection.Collection): MongoDB collection containing search logs.
+
+    Returns:
+        None: The function prints the report to the console and does not return any value.
+    """
+    result = list(mongo_collection.aggregate(year_range_popularity))
+    print(f"\n{banner('stats.year_range_popularity.header')}")
+    if not result:
+        print(f"\n{t('stats.no_data')}")
+        return
+    print(f"\n{t('stats.year_range_popularity.col_decade'):<15}| {t('stats.year_range_popularity.col_count')}")
+    print("-" * 88)
+    for row in result:
+        print(f"{str(row['_id']) + 's':<15}| {row['count']}")
+
+
+def top_genres_requests(mongo_collection: "pymongo.collection.Collection") -> None:
+    """
+    Displays how often each individual genre is searched, regardless of
+    which other genres it was combined with in a given search (e.g. a
+    search for "Action, Comedy" counts once towards Action and once
+    towards Comedy).
+
+    Args:
+        mongo_collection (pymongo.collection.Collection): MongoDB collection containing search logs.
+
+    Returns:
+        None: The function prints the report to the console and does not return any value.
+    """
+    result = list(mongo_collection.aggregate(top_individual_genres))
+    print(f"\n{banner('stats.top_genres.header')}")
+    if not result:
+        print(f"\n{t('stats.no_data')}")
+        return
+    print(f"\n{t('stats.top_genres.col_genre'):<30}| {t('stats.top_genres.col_count')}")
+    print("-" * 88)
+    for row in result:
+        print(f"{row['_id']:<30}| {row['count']}")
+
+
+def genre_co_occurrence_requests(mongo_collection: "pymongo.collection.Collection") -> None:
+    """
+    Displays which pairs of genres are most often searched together, for
+    searches that selected 2 or more genres at once.
+
+    The raw genre lists are fetched via the `genre_combinations_raw`
+    pipeline; pairwise counting itself happens here in Python using
+    `itertools.combinations`, rather than inside the aggregation pipeline
+    (see the comment on `genre_combinations_raw` for why).
+
+    Args:
+        mongo_collection (pymongo.collection.Collection): MongoDB collection containing search logs.
+
+    Returns:
+        None: The function prints the report to the console and does not return any value.
+
+    Notes:
+        - Each document's genre list is de-duplicated before pairing, so a
+          malformed log entry with a repeated genre can't inflate a pair's
+          count.
+        - Pairs are counted regardless of the order genres were entered in
+          (e.g. "Action, Comedy" and "Comedy, Action" count as the same pair).
+    """
+    docs = list(mongo_collection.aggregate(genre_combinations_raw))
+    print(f"\n{banner('stats.genre_co_occurrence.header')}")
+    if not docs:
+        print(f"\n{t('stats.no_data')}")
+        return
+
+    pair_counts: dict[tuple[str, str], int] = {}
+    for doc in docs:
+        genres = sorted(set(doc.get("genres", [])))
+        for pair in combinations(genres, 2):
+            pair_counts[pair] = pair_counts.get(pair, 0) + 1
+
+    if not pair_counts:
+        print(f"\n{t('stats.no_data')}")
+        return
+
+    top_pairs = sorted(pair_counts.items(), key=lambda item: item[1], reverse=True)[:10]
+    print(f"\n{t('stats.genre_co_occurrence.col_pair'):<40}| {t('stats.genre_co_occurrence.col_count')}")
+    print("-" * 88)
+    for (genre_a, genre_b), count in top_pairs:
+        pair_label = f"{genre_a} + {genre_b}"
+        print(f"{pair_label:<40}| {count}")
