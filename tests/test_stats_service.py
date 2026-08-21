@@ -2,10 +2,13 @@ from tests.conftest import FakeMongoCollection
 from app.services.stats_service import (
     activity_by_day_requests,
     avg_duration_requests,
+    genre_co_occurrence_requests,
     last5_requests,
     search_type_breakdown_requests,
     success_rate_requests,
     top5_requests,
+    top_genres_requests,
+    year_range_popularity_requests,
     zero_result_requests,
 )
 
@@ -193,5 +196,129 @@ class TestSuccessRateRequests:
     def test_handles_empty_result_without_crashing(self, capsys):
         collection = FakeMongoCollection(aggregate_result=[])
         success_rate_requests(collection)  # must not raise
+        captured = capsys.readouterr()
+        assert "No data yet." in captured.out
+
+
+class TestYearRangePopularityRequests:
+    def test_prints_report_header(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        year_range_popularity_requests(collection)
+        captured = capsys.readouterr()
+        assert "POPULAR YEAR RANGES" in captured.out
+
+    def test_prints_each_decade_row(self, capsys):
+        collection = FakeMongoCollection(
+            aggregate_result=[
+                {"_id": 1990, "count": 12},
+                {"_id": 2000, "count": 5},
+            ]
+        )
+        year_range_popularity_requests(collection)
+        captured = capsys.readouterr()
+        assert "1990s" in captured.out
+        assert "2000s" in captured.out
+
+    def test_handles_empty_result_without_crashing(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        year_range_popularity_requests(collection)  # must not raise
+        captured = capsys.readouterr()
+        assert "No data yet." in captured.out
+
+
+class TestTopGenresRequests:
+    def test_prints_report_header(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        top_genres_requests(collection)
+        captured = capsys.readouterr()
+        assert "TOP INDIVIDUAL GENRES" in captured.out
+
+    def test_prints_each_genre_row(self, capsys):
+        collection = FakeMongoCollection(
+            aggregate_result=[
+                {"_id": "Action", "count": 15},
+                {"_id": "Comedy", "count": 9},
+            ]
+        )
+        top_genres_requests(collection)
+        captured = capsys.readouterr()
+        assert "Action" in captured.out
+        assert "Comedy" in captured.out
+        assert "15" in captured.out
+
+    def test_handles_empty_result_without_crashing(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        top_genres_requests(collection)  # must not raise
+        captured = capsys.readouterr()
+        assert "No data yet." in captured.out
+
+
+class TestGenreCoOccurrenceRequests:
+    """
+    Unlike the other reports, this one does its counting in plain Python
+    (see the comment on genre_combinations_raw in mongo_queries.py for
+    why), so these tests exercise that counting logic directly rather
+    than just checking that a pre-aggregated result gets printed.
+    """
+
+    def test_prints_report_header(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        genre_co_occurrence_requests(collection)
+        captured = capsys.readouterr()
+        assert "GENRE CO-OCCURRENCE" in captured.out
+
+    def test_counts_a_single_pair(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[{"genres": ["Action", "Comedy"]}])
+        genre_co_occurrence_requests(collection)
+        captured = capsys.readouterr()
+        assert "Action + Comedy" in captured.out
+        assert "| 1" in captured.out
+
+    def test_counts_repeated_pair_across_documents(self, capsys):
+        collection = FakeMongoCollection(
+            aggregate_result=[
+                {"genres": ["Action", "Comedy"]},
+                {"genres": ["Comedy", "Action"]},  # same pair, different entry order
+            ]
+        )
+        genre_co_occurrence_requests(collection)
+        captured = capsys.readouterr()
+        assert "Action + Comedy" in captured.out
+        assert "| 2" in captured.out
+        # Should NOT appear as two separate rows for "Action + Comedy" and
+        # "Comedy + Action" — they're the same pair regardless of order.
+        assert captured.out.count("Comedy + Action") == 0
+
+    def test_expands_three_genres_into_three_pairs(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[{"genres": ["Action", "Comedy", "Drama"]}])
+        genre_co_occurrence_requests(collection)
+        captured = capsys.readouterr()
+        assert "Action + Comedy" in captured.out
+        assert "Action + Drama" in captured.out
+        assert "Comedy + Drama" in captured.out
+
+    def test_deduplicates_repeated_genre_within_one_document(self, capsys):
+        # A malformed/duplicate entry like ["Action", "Action", "Comedy"]
+        # should still only count as one Action-Comedy pair.
+        collection = FakeMongoCollection(aggregate_result=[{"genres": ["Action", "Action", "Comedy"]}])
+        genre_co_occurrence_requests(collection)
+        captured = capsys.readouterr()
+        assert "Action + Comedy" in captured.out
+        assert "| 1" in captured.out
+
+    def test_handles_empty_result_without_crashing(self, capsys):
+        collection = FakeMongoCollection(aggregate_result=[])
+        genre_co_occurrence_requests(collection)  # must not raise
+        captured = capsys.readouterr()
+        assert "No data yet." in captured.out
+
+    def test_document_with_only_one_unique_genre_after_dedup_yields_no_pairs(self, capsys):
+        # Defensive case: a malformed doc like ["Action", "Action"] passes
+        # the ".genres.1 exists" filter (it has 2 array elements) but
+        # de-duplicates down to a single genre, so it contributes zero
+        # pairs. If it's the *only* document, the report should fall back
+        # to the "no data" message rather than printing an empty table.
+        collection = FakeMongoCollection(aggregate_result=[{"genres": ["Action", "Action"]}])
+        genre_co_occurrence_requests(collection)  # must not raise
         captured = capsys.readouterr()
         assert "No data yet." in captured.out
