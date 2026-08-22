@@ -4,6 +4,54 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.2.0] - 2026-08-22
+
+### Added
+- Five new statistics reports, accessible from the Statistics menu
+  (options 3-7):
+  - **Zero-result queries** — searches that executed successfully but
+    found nothing, surfaced most-frequent-first
+  - **Search type breakdown** — count and % share per search type
+  - **Average duration by search type** — mean `duration_ms`, slowest
+    search type first
+  - **Search activity by day** — searches per calendar day, most recent
+    14 active days
+  - **Success rate by search type** — % of searches that ran without an
+    internal error, per search type
+- Corresponding aggregation pipelines in `app/db/mongo_queries.py`:
+  `zero_result_queries`, `search_type_breakdown`,
+  `avg_duration_by_search_type`, `searches_per_day`,
+  `success_rate_by_search_type`
+- A shared "No data yet." message (`stats.no_data`, localized in all 4
+  languages) shown by every report — including the existing top5/last5 —
+  when there are no logs to report on yet, instead of an empty table
+- Tests for all 5 new pipelines and report functions, plus updated
+  statistics-menu routing tests (265 tests total)
+
+- Three more statistics reports (menu options 8-10), building on the
+  structured `genres` list and `start_year`/`end_year` fields introduced
+  by multi-genre search:
+  - **Popular year ranges (by decade)** — `years`/`genre_years` searches
+    bucketed by decade of `start_year`
+  - **Top individual genres** — genre popularity via `$unwind` on
+    `params.genres`, independent of which other genres it was searched
+    alongside
+  - **Genre co-occurrence** — which genre pairs are most often searched
+    together (e.g. "Action + Comedy")
+- `app.db.mongo_queries.year_range_popularity` and
+  `top_individual_genres` aggregation pipelines
+- `app.db.mongo_queries.genre_combinations_raw`: a deliberately minimal
+  `$match` + `$project` pipeline that fetches raw genre lists rather than
+  computing pairwise co-occurrence inside MongoDB itself — generating all
+  unique pairs within an array in an aggregation pipeline needs either a
+  fragile self-`$unwind`-and-filter or MongoDB 5.2+'s `$sortArray`;
+  counting the pairs in plain Python via `itertools.combinations` is
+  simpler, more portable across MongoDB versions, and easier to test
+- Tests for all 3 new pipelines and report functions, including the
+  Python-side pair-counting logic (order-independence, de-duplication of
+  repeated genres within one search, 3-genre searches expanding into 3
+  pairs) — 295 tests total
+
 ## [4.1.0] - 2026-08-18
 
 ### Added
@@ -14,7 +62,7 @@ All notable changes to this project will be documented in this file.
 - `app.db.sql_queries.build_genres_query(genre_count)` and
   `build_genres_years_query(genre_count)`: build dynamically-sized,
   fully parameterized `IN (...)` queries for one or more genres
-- A genre cap (`MAX_SELECTED_GENRES = 20` in `sql_connection.py`) as a
+- A genre cap (`MAX_SELECTED_GENRES = 16` in `sql_connection.py`) as a
   defensive limit, mirroring the existing keyword-search word cap
 - Updated the genre-selection prompt in all 4 locales with a short tip
   about comma-separated multi-genre selection
