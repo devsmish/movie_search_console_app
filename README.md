@@ -25,6 +25,21 @@ non-relational databases, modular architecture, and CLI interaction design.
 
 * Top 5 most popular search queries
 * Last 5 recent search queries
+* **Zero-result queries** — searches that found nothing, the most direct
+  signal of a catalog gap or a mistyped/misspelled term
+* **Search type breakdown** — how often keyword/genre/years/genre+years
+  searches are used, with each type's share of the total
+* **Average duration by search type** — which kind of search is heaviest
+  on the database
+* **Search activity by day** — searches per calendar day (last 14 days
+  with activity)
+* **Success rate by search type** — % of searches that executed without
+  an internal error (independent of whether they found any results)
+* **Popular year ranges by decade** — which decades get searched most
+* **Top individual genres** — genre popularity independent of which other
+  genres it was combined with in a given search
+* **Genre co-occurrence** — which pairs of genres are most often searched
+  together (e.g. Action + Comedy)
 * Query performance tracking (execution time, result count)
 
 ### 🗄 Data Management
@@ -240,19 +255,35 @@ Q. Exit
 
 ## 📈 Example Logged Data (MongoDB)
 
+A keyword search:
+
 ```json
 {
   "timestamp": "2026-03-30T12:00:00",
   "search_type": "keyword",
-  "params": {
-      "keyword": "action",
-      "genre": "action",
-      "start_year": 1990,
-      "end_year":  2025},
-  "results_count": 42,
+  "params": { "keyword": "gone wind" },
+  "results_count": 1,
   "duration_ms": 15.3,
   "success": true,
-  "query_key": "keyword_action"
+  "query_key": "keyword_gone wind"
+}
+```
+
+A combined genre(s) + year-range search, selecting multiple genres at once:
+
+```json
+{
+  "timestamp": "2026-03-30T12:05:00",
+  "search_type": "genre_years",
+  "params": {
+      "genres": ["Action", "Comedy"],
+      "start_year": 1990,
+      "end_year": 2025
+  },
+  "results_count": 87,
+  "duration_ms": 9.7,
+  "success": true,
+  "query_key": "genre_years_Action+Comedy_1990_2025"
 }
 ```
 
