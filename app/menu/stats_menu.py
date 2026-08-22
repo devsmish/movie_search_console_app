@@ -1,5 +1,16 @@
 from app.utils.input_utils import safe_input
-from app.services.stats_service import top5_requests, last5_requests
+from app.services.stats_service import (
+    activity_by_day_requests,
+    avg_duration_requests,
+    genre_co_occurrence_requests,
+    last5_requests,
+    search_type_breakdown_requests,
+    success_rate_requests,
+    top5_requests,
+    top_genres_requests,
+    year_range_popularity_requests,
+    zero_result_requests,
+)
 from app.i18n.translator import t, banner
 from typing import TYPE_CHECKING
 
@@ -14,6 +25,14 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
     Allows the user to select between different reports:
     - Top-5 most frequent search queries
     - 5 most recent search queries
+    - Zero-result queries
+    - Search type breakdown
+    - Average duration by search type
+    - Search activity by day
+    - Success rate by search type
+    - Popular year ranges (by decade)
+    - Top individual genres
+    - Genre co-occurrence (which genres get searched together)
 
     Args:
         mongo_collection (pymongo.collection.Collection): MongoDB collection containing search logs.
@@ -23,7 +42,6 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
 
     Notes:
         - Uses `safe_input` to handle user input safely.
-        - Calls `top5_requests` or `last5_requests` depending on user selection.
         - The menu loops until the user chooses to quit.
     """
     while True:
@@ -32,6 +50,14 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
 {t('menu.stats.prompt')}
 {t('menu.stats.option_top5')}
 {t('menu.stats.option_last5')}
+{t('menu.stats.option_zero_results')}
+{t('menu.stats.option_search_type_breakdown')}
+{t('menu.stats.option_avg_duration')}
+{t('menu.stats.option_activity_by_day')}
+{t('menu.stats.option_success_rate')}
+{t('menu.stats.option_year_range_popularity')}
+{t('menu.stats.option_top_genres')}
+{t('menu.stats.option_genre_co_occurrence')}
 {t('menu.stats.option_back')}""")
         statistic_choice = safe_input(
             t("menu.stats.input_prompt"),
@@ -44,6 +70,22 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
             top5_requests(mongo_collection)
         elif statistic_choice == "2":
             last5_requests(mongo_collection)
+        elif statistic_choice == "3":
+            zero_result_requests(mongo_collection)
+        elif statistic_choice == "4":
+            search_type_breakdown_requests(mongo_collection)
+        elif statistic_choice == "5":
+            avg_duration_requests(mongo_collection)
+        elif statistic_choice == "6":
+            activity_by_day_requests(mongo_collection)
+        elif statistic_choice == "7":
+            success_rate_requests(mongo_collection)
+        elif statistic_choice == "8":
+            year_range_popularity_requests(mongo_collection)
+        elif statistic_choice == "9":
+            top_genres_requests(mongo_collection)
+        elif statistic_choice == "10":
+            genre_co_occurrence_requests(mongo_collection)
         elif statistic_choice.lower() == "q":
             break
         else:
