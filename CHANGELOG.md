@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - `app.db.sql_queries.build_genres_query(genre_count)` and
   `build_genres_years_query(genre_count)`: build dynamically-sized,
   fully parameterized `IN (...)` queries for one or more genres
-- A genre cap (`MAX_SELECTED_GENRES = 20` in `sql_connection.py`) as a
+- A genre cap (`MAX_SELECTED_GENRES = 16` in `sql_connection.py`) as a
   defensive limit, mirroring the existing keyword-search word cap
 - Updated the genre-selection prompt in all 4 locales with a short tip
   about comma-separated multi-genre selection
