@@ -28,7 +28,7 @@
     },
     "stats": {
       "header": "STATISTIKMENÜ",
-      "prompt": "Wählen Sie einen Berichtstyp (1–7 oder Q):",
+      "prompt": "Wählen Sie einen Berichtstyp (1–10 oder Q):",
       "option_top5": "1. TOP-5 Suchanfragen.",
       "option_last5": "2. 5 letzte Suchanfragen.",
       "option_zero_results": "3. Anfragen ohne Ergebnisse.",
@@ -36,6 +36,9 @@
       "option_avg_duration": "5. Durchschnittliche Dauer nach Suchtyp.",
       "option_activity_by_day": "6. Suchaktivität nach Tag.",
       "option_success_rate": "7. Erfolgsquote nach Suchtyp.",
+      "option_year_range_popularity": "8. Beliebte Jahresbereiche (nach Jahrzehnt).",
+      "option_top_genres": "9. Meistgesuchte Einzelgenres.",
+      "option_genre_co_occurrence": "10. Gemeinsam gesuchte Genres.",
       "option_back": "Q. Zurück zum vorherigen Menü.",
       "input_prompt": "Statistikbericht wählen: ",
       "interrupt": "Der Benutzer hat das Statistikmenü unterbrochen!\nZurück zum Hauptmenü"
@@ -138,6 +141,21 @@
       "col_total": "Gesamt",
       "col_successful": "Erfolgreich",
       "col_rate": "Erfolgsquote"
+    },
+    "year_range_popularity": {
+      "header": "BELIEBTE JAHRESBEREICHE (NACH JAHRZEHNT)",
+      "col_decade": "Jahrzehnt",
+      "col_count": "Suchanfragen"
+    },
+    "top_genres": {
+      "header": "MEISTGESUCHTE EINZELGENRES",
+      "col_genre": "Genre",
+      "col_count": "Suchanfragen"
+    },
+    "genre_co_occurrence": {
+      "header": "GEMEINSAM GESUCHTE GENRES",
+      "col_pair": "Genre-Paar",
+      "col_count": "Gemeinsam gesucht"
     }
   },
   "search_service": {

@@ -1,10 +1,13 @@
 from app.db.mongo_queries import (
     avg_duration_by_search_type,
+    genre_combinations_raw,
     last5_queries,
     search_type_breakdown,
     searches_per_day,
     success_rate_by_search_type,
     top5_queries,
+    top_individual_genres,
+    year_range_popularity,
     zero_result_queries,
 )
 
@@ -129,3 +132,65 @@ class TestSuccessRateBySearchTypePipeline:
             stage["$project"] for stage in success_rate_by_search_type if "$project" in stage
         )
         assert "success_rate_pct" in project_stage
+
+
+class TestYearRangePopularityPipeline:
+    def test_is_a_list_of_pipeline_stages(self):
+        assert isinstance(year_range_popularity, list)
+        assert all(isinstance(stage, dict) for stage in year_range_popularity)
+
+    def test_matches_only_years_and_genre_years_search_types(self):
+        match_stage = next(stage["$match"] for stage in year_range_popularity if "$match" in stage)
+        assert match_stage["search_type"] == {"$in": ["years", "genre_years"]}
+
+    def test_groups_by_decade_of_start_year(self):
+        group_stage = next(stage["$group"] for stage in year_range_popularity if "$group" in stage)
+        assert group_stage["_id"] == {
+            "$subtract": ["$params.start_year", {"$mod": ["$params.start_year", 10]}]
+        }
+
+    def test_sorts_by_count_descending(self):
+        sort_stages = [stage["$sort"] for stage in year_range_popularity if "$sort" in stage]
+        assert any(sort.get("count") == -1 for sort in sort_stages)
+
+    def test_limits_results(self):
+        assert any(stage.get("$limit") for stage in year_range_popularity)
+
+
+class TestTopIndividualGenresPipeline:
+    def test_is_a_list_of_pipeline_stages(self):
+        assert isinstance(top_individual_genres, list)
+        assert all(isinstance(stage, dict) for stage in top_individual_genres)
+
+    def test_matches_only_genre_and_genre_years_search_types(self):
+        match_stage = next(stage["$match"] for stage in top_individual_genres if "$match" in stage)
+        assert match_stage["search_type"] == {"$in": ["genre", "genre_years"]}
+
+    def test_unwinds_the_genres_array(self):
+        assert any(stage.get("$unwind") == "$params.genres" for stage in top_individual_genres)
+
+    def test_groups_by_individual_genre(self):
+        group_stage = next(stage["$group"] for stage in top_individual_genres if "$group" in stage)
+        assert group_stage["_id"] == "$params.genres"
+
+    def test_sorts_by_count_descending(self):
+        sort_stages = [stage["$sort"] for stage in top_individual_genres if "$sort" in stage]
+        assert any(sort.get("count") == -1 for sort in sort_stages)
+
+
+class TestGenreCombinationsRawPipeline:
+    def test_is_a_list_of_pipeline_stages(self):
+        assert isinstance(genre_combinations_raw, list)
+        assert all(isinstance(stage, dict) for stage in genre_combinations_raw)
+
+    def test_matches_only_genre_and_genre_years_search_types(self):
+        match_stage = next(stage["$match"] for stage in genre_combinations_raw if "$match" in stage)
+        assert match_stage["search_type"] == {"$in": ["genre", "genre_years"]}
+
+    def test_requires_at_least_two_genres(self):
+        match_stage = next(stage["$match"] for stage in genre_combinations_raw if "$match" in stage)
+        assert match_stage["params.genres.1"] == {"$exists": True}
+
+    def test_projects_only_the_genres_field(self):
+        project_stage = next(stage["$project"] for stage in genre_combinations_raw if "$project" in stage)
+        assert project_stage == {"_id": 0, "genres": "$params.genres"}

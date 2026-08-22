@@ -28,7 +28,7 @@
     },
     "stats": {
       "header": "STATISTICS MENU",
-      "prompt": "Select a report option to view (1-7 or Q):",
+      "prompt": "Select a report option to view (1-10 or Q):",
       "option_top5": "1. TOP-5 search queries.",
       "option_last5": "2. 5 most recent search queries.",
       "option_zero_results": "3. Zero-result queries.",
@@ -36,6 +36,9 @@
       "option_avg_duration": "5. Average duration by search type.",
       "option_activity_by_day": "6. Search activity by day.",
       "option_success_rate": "7. Success rate by search type.",
+      "option_year_range_popularity": "8. Popular year ranges (by decade).",
+      "option_top_genres": "9. Top individual genres.",
+      "option_genre_co_occurrence": "10. Genre co-occurrence (searched together).",
       "option_back": "Q. Return to the previous menu.",
       "input_prompt": "Choice your statistic report: ",
       "interrupt": "The user interrupted the statistic menu!\nReturn to the main menu"
@@ -138,6 +141,21 @@
       "col_total": "Total",
       "col_successful": "Successful",
       "col_rate": "Success Rate"
+    },
+    "year_range_popularity": {
+      "header": "POPULAR YEAR RANGES (BY DECADE)",
+      "col_decade": "Decade",
+      "col_count": "Searches"
+    },
+    "top_genres": {
+      "header": "TOP INDIVIDUAL GENRES",
+      "col_genre": "Genre",
+      "col_count": "Searches"
+    },
+    "genre_co_occurrence": {
+      "header": "GENRE CO-OCCURRENCE",
+      "col_pair": "Genre Pair",
+      "col_count": "Searched Together"
     }
   },
   "search_service": {

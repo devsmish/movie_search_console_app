@@ -140,3 +140,70 @@ success_rate_by_search_type = [
         "$sort": {"_id": 1}
     }
 ]
+
+# Popularity of the searched release-year range, bucketed by decade of
+# start_year (e.g. 1993 -> 1990). Covers both plain year searches and
+# combined genre+years searches.
+year_range_popularity = [
+    {
+        "$match": {"search_type": {"$in": ["years", "genre_years"]}}
+    },
+    {
+        "$group": {
+            "_id": {
+                "$subtract": ["$params.start_year", {"$mod": ["$params.start_year", 10]}]
+            },
+            "count": {"$sum": 1}
+        }
+    },
+    {
+        "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
+    }
+]
+
+# How often each individual genre is searched, regardless of which other
+# genres it was combined with in a given search (e.g. a search for
+# "Action, Comedy" counts once towards Action and once towards Comedy).
+top_individual_genres = [
+    {
+        "$match": {"search_type": {"$in": ["genre", "genre_years"]}}
+    },
+    {
+        "$unwind": "$params.genres"
+    },
+    {
+        "$group": {
+            "_id": "$params.genres",
+            "count": {"$sum": 1}
+        }
+    },
+    {
+        "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
+    }
+]
+
+# Raw fetch of the genre lists from searches that selected 2+ genres at
+# once. Deliberately NOT computing the pairwise co-occurrence counts in
+# the aggregation pipeline itself: generating all unique pairs within an
+# array requires either a fragile self-$unwind-and-filter or MongoDB
+# 5.2+'s $sortArray, neither of which is worth the complexity here. It's
+# far simpler, more portable, and easier to test to fetch the raw genre
+# lists and let genre_co_occurrence_requests() (in stats_service.py) do
+# the pair-counting in plain Python via itertools.combinations.
+genre_combinations_raw = [
+    {
+        "$match": {
+            "search_type": {"$in": ["genre", "genre_years"]},
+            "params.genres.1": {"$exists": True}  # at least 2 genres selected
+        }
+    },
+    {
+        "$project": {"_id": 0, "genres": "$params.genres"}
+    }
+]

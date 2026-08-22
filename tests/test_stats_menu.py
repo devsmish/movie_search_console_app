@@ -11,6 +11,9 @@ ALL_REPORT_FUNCS = [
     "avg_duration_requests",
     "activity_by_day_requests",
     "success_rate_requests",
+    "year_range_popularity_requests",
+    "top_genres_requests",
+    "genre_co_occurrence_requests",
 ]
 
 
@@ -64,13 +67,35 @@ class TestStatsMenuRouting:
             stats_menu(MagicMock())
         report.assert_called_once()
 
+    def test_option_8_calls_year_range_popularity_requests(self, monkeypatch):
+        responses = iter(["8", "q"])
+        with patch.object(stats_menu_module, "year_range_popularity_requests") as report:
+            monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))
+            stats_menu(MagicMock())
+        report.assert_called_once()
+
+    def test_option_9_calls_top_genres_requests(self, monkeypatch):
+        responses = iter(["9", "q"])
+        with patch.object(stats_menu_module, "top_genres_requests") as report:
+            monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))
+            stats_menu(MagicMock())
+        report.assert_called_once()
+
+    def test_option_10_calls_genre_co_occurrence_requests(self, monkeypatch):
+        responses = iter(["10", "q"])
+        with patch.object(stats_menu_module, "genre_co_occurrence_requests") as report:
+            monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))
+            stats_menu(MagicMock())
+        report.assert_called_once()
+
     def test_q_returns_without_calling_any_report(self, monkeypatch):
         monkeypatch.setattr("builtins.input", lambda prompt="": "q")
         patches = [patch.object(stats_menu_module, name) for name in ALL_REPORT_FUNCS]
         with patches[0] as p0, patches[1] as p1, patches[2] as p2, patches[3] as p3, \
-             patches[4] as p4, patches[5] as p5, patches[6] as p6:
+             patches[4] as p4, patches[5] as p5, patches[6] as p6, patches[7] as p7, \
+             patches[8] as p8, patches[9] as p9:
             stats_menu(MagicMock())
-        for mock in (p0, p1, p2, p3, p4, p5, p6):
+        for mock in (p0, p1, p2, p3, p4, p5, p6, p7, p8, p9):
             mock.assert_not_called()
 
     def test_keyboard_interrupt_returns_cleanly(self, monkeypatch):
@@ -81,7 +106,7 @@ class TestStatsMenuRouting:
         stats_menu(MagicMock())  # must not raise
 
     def test_invalid_choice_is_rejected_then_retried(self, monkeypatch, capsys):
-        responses = iter(["9", "q"])
+        responses = iter(["99", "q"])
         monkeypatch.setattr("builtins.input", lambda prompt="": next(responses))
         stats_menu(MagicMock())
         captured = capsys.readouterr()
