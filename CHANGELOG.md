@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.2.1] - 2026-08-23
+
+### Fixed
+- Fixed 19 failing unit tests resulting from the DB module query-builder refactoring.
+- Updated test patches and imports to reference `build_*` query functions from `app.db.sql_queries` instead of legacy `sql_connection` local helpers.
+
+### Added
+- Unit test coverage for `ValueError` validation when `count < 1` in SQL query builders (`build_keyword`, `build_genres`, `build_genres_years`).
+
 ## [4.2.0] - 2026-08-22
 
 ### Added
