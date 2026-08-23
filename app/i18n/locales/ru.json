@@ -4,6 +4,9 @@
     "banner_title": "ПОИСК ФИЛЬМОВ",
     "startup_error": "Ошибка запуска: {error}"
   },
+  "config": {
+    "missing_vars": "Отсутствуют обязательные параметры конфигурации: {vars}. Проверьте файл .env (см. .env.example)."
+  },
   "menu": {
     "main": {
       "header": "ГЛАВНОЕ МЕНЮ",
