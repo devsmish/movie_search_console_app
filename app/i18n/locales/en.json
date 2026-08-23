@@ -4,6 +4,9 @@
     "banner_title": "MOVIE SEARCH APP",
     "startup_error": "Startup error: {error}"
   },
+  "config": {
+    "missing_vars": "Missing required configuration: {vars}. Please check your .env file (see .env.example)."
+  },
   "menu": {
     "main": {
       "header": "MAIN MENU",

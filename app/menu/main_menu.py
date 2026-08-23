@@ -4,15 +4,16 @@ from app.utils.input_utils import safe_input
 from app.menu.search_menu import search_menu
 from app.menu.stats_menu import stats_menu
 from app.i18n.translator import t, banner
+from config import Config, ConfigError
 
 
 def main_menu() -> None:
     """
     Entry point and main menu for the Movie Search App.
 
-    Establishes connections to the SQL database and MongoDB, then displays
-    the main menu to the user. Allows navigation to movie searches or
-    statistics reports.
+    Validates required configuration, establishes connections to the SQL
+    database and MongoDB, then displays the main menu to the user. Allows
+    navigation to movie searches or statistics reports.
 
     Args:
         None
@@ -23,6 +24,9 @@ def main_menu() -> None:
 
     Notes:
         - Uses `safe_input` to handle user input safely.
+        - Calls `Config.validate()` first, so a missing/misnamed .env
+          variable is reported clearly instead of surfacing as a
+          confusing low-level pymysql/pymongo connection error.
         - Initializes `cursor` for SQL database operations.
         - Initializes `mongo_collection` for logging search requests.
         - Loops until the user chooses to exit the program.
@@ -31,9 +35,13 @@ def main_menu() -> None:
     print(t("app.started"))
 
     try:
+        Config.validate()
         connection = get_connection()
         cursor = connection.cursor()
         mongo_collection = get_mongo_collection()
+    except ConfigError as e:
+        print(f"\033[31m{t('config.missing_vars', vars=', '.join(e.missing))}\033[0m")
+        return
     except Exception as e:
         print(f"\033[31m{t('app.startup_error', error=e)}\033[0m")
         return
