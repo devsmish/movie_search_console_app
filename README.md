@@ -223,6 +223,8 @@ pytest --cov=app --cov-report=term-missing
 
 ### What's covered
 
+* SQL query strings, query-builder functions (`build_keyword`, `build_genres`, `build_genres_years`), and 
+  dynamic validation rules (`count >= 1`)
 * Pure utility functions (`year_utils`, `input_utils`)
 * The i18n layer (`translator.py`, `language_select.py`), including a
   check that all 4 locale JSON files define exactly the same set of keys
