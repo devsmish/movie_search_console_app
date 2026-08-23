@@ -1,6 +1,6 @@
 import pytest
 
-from app.db import sql_queries
+from app.db import sql_queries, sql_connection
 
 
 class TestKeywordQueryCaseHandling:
@@ -41,30 +41,30 @@ class TestBuildKeywordQuery:
     """
 
     def test_single_word_matches_static_keyword_query(self):
-        assert sql_queries.build_keyword_query(1) == sql_queries.keyword_query
+        assert sql_connection.build_keyword(1) == sql_queries.keyword_query
 
     def test_uses_lower_not_upper(self):
-        assert "LOWER(f.title)" in sql_queries.build_keyword_query(3)
-        assert "UPPER(" not in sql_queries.build_keyword_query(3)
+        assert "LOWER(f.title)" in sql_connection.build_keyword(3)
+        assert "UPPER(" not in sql_connection.build_keyword(3)
 
     def test_no_hardcoded_schema(self):
-        assert "sakila." not in sql_queries.build_keyword_query(3)
+        assert "sakila." not in sql_connection.build_keyword(3)
 
     def test_placeholder_count_matches_word_count(self):
         for n in (1, 2, 3, 5, 10):
-            assert sql_queries.build_keyword_query(n).count("%s") == n
+            assert sql_connection.build_keyword(n).count("%s") == n
 
     def test_conditions_are_joined_with_and(self):
-        query = sql_queries.build_keyword_query(3)
+        query = sql_connection.build_keyword(3)
         assert query.count(" AND ") == 2  # 3 conditions -> 2 "AND" joins
 
     def test_zero_word_count_raises_value_error(self):
         with pytest.raises(ValueError):
-            sql_queries.build_keyword_query(0)
+            sql_connection.build_keyword(0)
 
     def test_negative_word_count_raises_value_error(self):
         with pytest.raises(ValueError):
-            sql_queries.build_keyword_query(-1)
+            sql_connection.build_keyword(-1)
 
 
 class TestBuildGenresQuery:
@@ -74,22 +74,22 @@ class TestBuildGenresQuery:
     """
 
     def test_uses_in_clause(self):
-        assert "IN (%s, %s, %s)" in sql_queries.build_genres_query(3)
+        assert "IN (%s, %s, %s)" in sql_connection.build_genres(3)
 
     def test_no_hardcoded_schema(self):
-        assert "sakila." not in sql_queries.build_genres_query(3)
+        assert "sakila." not in sql_connection.build_genres(3)
 
     def test_placeholder_count_matches_genre_count(self):
         for n in (1, 2, 3, 5, 10):
-            assert sql_queries.build_genres_query(n).count("%s") == n
+            assert sql_connection.build_genres(n).count("%s") == n
 
     def test_zero_genre_count_raises_value_error(self):
         with pytest.raises(ValueError):
-            sql_queries.build_genres_query(0)
+            sql_connection.build_genres(0)
 
     def test_negative_genre_count_raises_value_error(self):
         with pytest.raises(ValueError):
-            sql_queries.build_genres_query(-1)
+            sql_connection.build_genres(-1)
 
 
 class TestBuildGenresYearsQuery:
@@ -98,20 +98,20 @@ class TestBuildGenresYearsQuery:
     """
 
     def test_uses_in_clause_and_year_range(self):
-        query = sql_queries.build_genres_years_query(2)
+        query = sql_connection.build_genres_years(2)
         assert "IN (%s, %s)" in query
         assert "BETWEEN %s AND %s" in query
 
     def test_no_hardcoded_schema(self):
-        assert "sakila." not in sql_queries.build_genres_years_query(3)
+        assert "sakila." not in sql_connection.build_genres_years(3)
 
     def test_placeholder_count_is_genre_count_plus_two(self):
         for n in (1, 2, 3, 5):
-            assert sql_queries.build_genres_years_query(n).count("%s") == n + 2
+            assert sql_connection.build_genres_years(n).count("%s") == n + 2
 
     def test_zero_genre_count_raises_value_error(self):
         with pytest.raises(ValueError):
-            sql_queries.build_genres_years_query(0)
+            sql_connection.build_genres_years(0)
 
 
 class TestQueriesAreParameterized:

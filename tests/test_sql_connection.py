@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from app.db import sql_queries
+from app.db import sql_queries, sql_connection
 from app.db.sql_connection import (
     MAX_KEYWORD_WORDS,
     genre_years_search,
@@ -42,7 +42,7 @@ class TestKeywordsSearchMultiWord:
 
     def test_uses_a_query_with_one_condition_per_word(self, fake_cursor):
         keywords_search("gone wind", fake_cursor)
-        assert fake_cursor.last_query == sql_queries.build_keyword_query(2)
+        assert fake_cursor.last_query == sql_connection.build_keyword(2)
         assert fake_cursor.last_query.count("%s") == 2
 
     def test_word_order_in_the_query_matches_input_order(self, fake_cursor):
@@ -119,7 +119,7 @@ class TestListGenres:
 class TestGenresSearch:
     def test_single_genre(self, fake_cursor):
         genres_search(fake_cursor, ["Comedy"])
-        assert fake_cursor.last_query == sql_queries.build_genres_query(1)
+        assert fake_cursor.last_query == sql_connection.build_genres(1)
         assert fake_cursor.last_params == ("Comedy",)
 
     def test_multiple_genres_use_in_clause(self, fake_cursor):
@@ -162,7 +162,7 @@ class TestYearsSearch:
 class TestGenreYearsSearch:
     def test_single_genre(self, fake_cursor):
         genre_years_search(fake_cursor, ["Action"], 1995, 2005)
-        assert fake_cursor.last_query == sql_queries.build_genres_years_query(1)
+        assert fake_cursor.last_query == sql_connection.build_genres_years(1)
         assert fake_cursor.last_params == ("Action", 1995, 2005)
 
     def test_multiple_genres_use_in_clause_plus_year_range(self, fake_cursor):
