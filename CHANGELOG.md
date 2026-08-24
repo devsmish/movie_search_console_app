@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.3.0] - 2026-08-22
+
+This release is the first of a staged 4.3.x series focused on
+performance and reliability groundwork, planned as 4.3.0 (this release,
+DB indexes + config validation) → 4.3.1 (reference-data caching) →
+4.3.2 (output formatting + export) → 4.3.3 (file-based logging) → 4.3.4
+(test/CI hardening). See the README roadmap for the full plan.
+
+### Added
+- `../scripts/apply_indexes.py`: an idempotent script that adds the indexes
+  backing every search filter used by the app —
+  `category(name)`, `film(release_year)`, and a functional index on
+  `film((LOWER(title)))` for MySQL, plus a MongoDB
+  `(search_type: 1, timestamp: -1)` index for the log collection used by
+  `app/services/stats_service.py`. Existing indexes are detected and
+  skipped rather than erroring, so it's safe to re-run.
+- `../migrations/4.3.0_add_indexes.sql`: a plain-SQL reference of exactly
+  what the script above creates, for manual review/application.
+- `Config.validate()` / `Config.missing_vars()` in `config.py`: checks
+  that all required `.env` variables are present at startup and raises a
+  `ConfigError` (listing the missing names) instead of letting a
+  misconfigured `.env` surface as a confusing low-level pymysql/pymongo
+  connection error several layers down.
+- `main_menu()` now calls `Config.validate()` before attempting any
+  database connection, and reports missing configuration via a new
+  localized `config.missing_vars` message (added to all 4 locales).
+- Tests for the new config validation (`../tests/test_config.py`), the
+  index-application script (`../tests/test_apply_indexes.py`), and the new
+  main-menu startup path (`TestMainMenuConfigValidation` in
+  `tests/test_main_menu.py`) — 312 tests total.
+- `FakeCursor.fetchone()` / `FakeCursor.commit()` and
+  `FakeMongoCollection.create_index()` added to `tests/conftest.py` to
+  support the above without needing a live database.
+
 ## [4.2.1] - 2026-08-23
 
 ### Fixed
