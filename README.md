@@ -116,6 +116,14 @@ app/
 tests/                         # Pytest unit test suite (see "Testing" below)
 ├── conftest.py               # Shared fixtures: fake cursor, fake Mongo collection
 ├── test_*.py                 # One test module per app module, mirroring app/
+
+scripts/                       # One-off maintenance scripts (not part of the interactive CLI)
+├── apply_indexes.py           # Idempotently applies the 4.3.0 MySQL + MongoDB indexes
+
+migrations/                    # Plain-SQL reference for schema/index changes
+├── 4.3.0_add_indexes.sql
+
+config.py                      # Env-based configuration + Config.validate() startup check
 ```
 
 ---
@@ -200,6 +208,24 @@ pip install pymysql pymongo
 ```bash
 python app/main.py
 ```
+If a required variable is missing from `.env`, the app now stops with a
+clear message listing exactly which ones (instead of a low-level
+pymysql/pymongo connection error).
+
+---
+
+### 5. (Recommended) Apply performance indexes
+
+Search filters on `category.name`, `film.release_year`, and
+`LOWER(f.title)` benefit from indexes that aren't there by default in a
+stock Sakila install. Run once, idempotently:
+
+```bash
+python -m scripts.apply_indexes
+```
+
+See `../migrations/4.3.0_add_indexes.sql` for the plain-SQL reference of
+what this creates.
 
 ---
 
@@ -339,11 +365,32 @@ This design provides:
 
 * Advanced analytics and reporting
 
-### 🔧 4.3.0
+### 🔧 v4.3.0
 
-* Project restructuring (modular architecture)
-* Improved documentation (docstrings)
-* Formatting output
+* MySQL indexes for `category.name`, `film.release_year`, and
+  `LOWER(film.title)`, plus a MongoDB `(search_type, timestamp)` index,
+  applied idempotently via `python -m scripts.apply_indexes`
+* Startup configuration validation: missing/misnamed `.env` variables are
+  now reported clearly before any DB connection is attempted
+
+### 🔜 v4.3.1 (planned)
+
+* Caching of rarely-changing reference data (`list_genres()`, `range_years()`)
+
+### 🔜 v4.3.2 (planned)
+
+* Shared output-formatting module (console table, CSV, JSON) and a
+  results-export option, reusing the same formatters
+
+### 🔜 v4.3.3 (planned)
+
+* File-based logging (with rotation) for search/log-write failures,
+  replacing the current console-only error prints
+
+### 🔜 v4.3.4 (planned)
+
+* Additional test coverage for `app/main.py`
+* CI workflow (GitHub Actions) running the test suite on push/PR
 
 ### 🔐 v5.0.0
 

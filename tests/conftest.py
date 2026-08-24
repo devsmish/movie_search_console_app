@@ -38,8 +38,13 @@ class FakeCursor:
     how the calling code handles the returned rows.
     """
 
-    def __init__(self, fetchall_result=None):
+    def __init__(self, fetchall_result=None, fetchone_results=None):
         self.fetchall_result = fetchall_result if fetchall_result is not None else []
+        # A queue of results returned one-per-call by fetchone(), for tests
+        # that issue several execute()+fetchone() pairs in sequence (e.g.
+        # the information_schema existence checks in apply_indexes.py).
+        # Falls back to {"cnt": 0} ("not found yet") once exhausted.
+        self._fetchone_results = list(fetchone_results) if fetchone_results else []
         self.last_query = None
         self.last_params = None
         self.execute_calls = []
@@ -51,6 +56,14 @@ class FakeCursor:
 
     def fetchall(self):
         return self.fetchall_result
+
+    def fetchone(self):
+        if self._fetchone_results:
+            return self._fetchone_results.pop(0)
+        return {"cnt": 0}
+
+    def commit(self):
+        pass
 
     def close(self):
         pass
@@ -77,6 +90,7 @@ class FakeMongoCollection:
     def __init__(self, aggregate_result=None):
         self.inserted = []
         self.aggregate_result = aggregate_result if aggregate_result is not None else []
+        self.created_indexes = []
 
     def insert_one(self, document):
         self.inserted.append(document)
@@ -85,6 +99,11 @@ class FakeMongoCollection:
     def aggregate(self, pipeline):
         self.last_pipeline = pipeline
         return self.aggregate_result
+
+    def create_index(self, keys, **kwargs):
+        self.created_indexes.append(keys)
+        # Mimics pymongo's real return value: a generated index name.
+        return "_".join(f"{field}_{direction}" for field, direction in keys)
 
 
 @pytest.fixture

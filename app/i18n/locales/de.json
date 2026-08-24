@@ -4,6 +4,9 @@
     "banner_title": "FILMSUCHE-APP",
     "startup_error": "Startfehler: {error}"
   },
+  "config": {
+    "missing_vars": "Fehlende erforderliche Konfiguration: {vars}. Bitte überprüfen Sie Ihre .env-Datei (siehe .env.example)."
+  },
   "menu": {
     "main": {
       "header": "HAUPTMENÜ",
