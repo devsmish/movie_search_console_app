@@ -373,9 +373,12 @@ This design provides:
 * Startup configuration validation: missing/misnamed `.env` variables are
   now reported clearly before any DB connection is attempted
 
-### 🔜 v4.3.1 (planned)
+### 🔧 v4.3.1
 
-* Caching of rarely-changing reference data (`list_genres()`, `range_years()`)
+* In-memory caching of rarely-changing reference data (`list_genres()`,
+  `range_years()`) with an opt-out `force_refresh` flag and an explicit
+  `clear_reference_data_cache()` for when the underlying data is known
+  to have changed mid-session
 
 ### 🔜 v4.3.2 (planned)
 

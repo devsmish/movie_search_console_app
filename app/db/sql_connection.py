@@ -3,6 +3,7 @@ from config import Config
 from pymysql.cursors import DictCursor
 from app.db.sql_queries import *
 from app.i18n.translator import t
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -86,12 +87,36 @@ def keywords_search(keyword: str, cursor) -> list[dict]:
     cursor.execute(query, params)
     return cursor.fetchall()
 
-def list_genres(cursor) -> list[dict]:
+@lru_cache(maxsize=None)
+def _cached_list_genres(cursor) -> tuple[dict, ...]:
+    """
+    Cache-backed implementation behind list_genres() — see that function
+    for the public contract. Keyed by the cursor object's identity via
+    lru_cache, so within one CLI session (one long-lived cursor) the
+    genre list is fetched from MySQL only once, since it's reference
+    data that essentially never changes mid-session. A fresh process (a
+    new cursor) always starts with a cold cache.
+
+    Returns a tuple rather than a list so the cached value itself can't
+    be mutated by a caller; list_genres() copies it into a fresh list
+    on every call.
+    """
+    cursor.execute(genres_list)
+    return tuple(cursor.fetchall())
+
+
+def list_genres(cursor, force_refresh: bool = False) -> list[dict]:
     """
     Retrieves a list of all available movie genres.
 
+    Results are cached per-cursor for the lifetime of the process (see
+    _cached_list_genres), since the genre list is reference data that's
+    read far more often than it changes.
+
     Args:
         cursor: Active MySQL cursor (DictCursor).
+        force_refresh (bool, optional): If True, bypasses the cache and
+            re-queries the database. Defaults to False.
 
     Returns:
         list[dict]: List of genres where each item contains:
@@ -100,8 +125,9 @@ def list_genres(cursor) -> list[dict]:
                 "name": str
             }
     """
-    cursor.execute(genres_list)
-    return cursor.fetchall()
+    if force_refresh:
+        _cached_list_genres.cache_clear()
+    return list(_cached_list_genres(cursor))
 
 def genre_years_search(
     cursor, genres: list[str], start_year: int = 1990, end_year: int = 2025
@@ -203,12 +229,28 @@ def genres_search(cursor, genres: list[str]) -> list[dict]:
     cursor.execute(query, tuple(unique_genres))
     return cursor.fetchall()
 
-def range_years(cursor) -> list[dict]:
+@lru_cache(maxsize=None)
+def _cached_range_years(cursor) -> tuple[dict, ...]:
+    """
+    Cache-backed implementation behind range_years() — see that function
+    for the public contract and caching rationale.
+    """
+    cursor.execute(range_years_query)
+    return tuple(cursor.fetchall())
+
+
+def range_years(cursor, force_refresh: bool = False) -> list[dict]:
     """
     Retrieves the minimum and maximum release years available in the dataset.
 
+    Results are cached per-cursor for the lifetime of the process (see
+    _cached_range_years), since this is reference data derived from the
+    whole `film` table that's read far more often than it changes.
+
     Args:
         cursor: Active MySQL cursor (DictCursor).
+        force_refresh (bool, optional): If True, bypasses the cache and
+            re-queries the database. Defaults to False.
 
     Returns:
         list[dict]: List containing a single record with:
@@ -217,8 +259,10 @@ def range_years(cursor) -> list[dict]:
                 "max_year": int
             }
     """
-    cursor.execute(range_years_query)
-    return cursor.fetchall()
+    if force_refresh:
+        _cached_range_years.cache_clear()
+    return list(_cached_range_years(cursor))
+
 
 def build_keyword(word_count: int) -> str:
     """
@@ -299,3 +343,16 @@ def build_genres_years(genre_count: int) -> str:
 
     placeholders = ", ".join(["%s"] * genre_count)
     return build_genres_years_query.format(placeholders=placeholders)
+
+
+def clear_reference_data_cache() -> None:
+    """
+    Clears the in-memory cache backing list_genres() and range_years().
+
+    Mainly useful for tests (so cached data from one test/fixture cursor
+    never leaks into another) and for long-lived processes where the
+    underlying reference data is known to have changed and a one-off
+    refresh is preferable to restarting the app.
+    """
+    _cached_list_genres.cache_clear()
+    _cached_range_years.cache_clear()
