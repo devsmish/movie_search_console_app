@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.3.1] - 2026-08-25
+
+Second release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)
+for the full plan). This one adds in-memory caching for reference data.
+
+### Added
+- `list_genres()` and `range_years()` in `app/db/sql_connection.py` are
+  now cached per-cursor via `functools.lru_cache`: within one CLI session
+  (one long-lived cursor), each is queried from MySQL at most once,
+  since both are reference data (the genre list, the min/max release
+  year) that's read on every visit to the genre/year search flows but
+  essentially never changes mid-session.
+- Both functions gained an optional `force_refresh: bool = False`
+  parameter to bypass the cache for a single call when needed.
+- `clear_reference_data_cache()`: clears both caches at once — useful
+  for tests, and for long-lived processes where the underlying data is
+  known to have changed.
+- Each call still returns a fresh `list` copy (never the cached object
+  itself), so a caller mutating the returned list in place (e.g.
+  sorting it) can't corrupt what later callers see.
+- Tests for cache hits/misses, `force_refresh`, per-cursor isolation,
+  copy-safety, and `clear_reference_data_cache()` — 322 tests total.
+- `tests/conftest.py`: a new autouse fixture clears the reference-data
+  cache before and after every test, alongside the existing
+  language-reset fixture.
+
 ## [4.3.0] - 2026-08-22
 
 This release is the first of a staged 4.3.x series focused on
