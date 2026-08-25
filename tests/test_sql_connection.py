@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from app.db import sql_queries, sql_connection
 from app.db.sql_connection import (
     MAX_KEYWORD_WORDS,
+    clear_reference_data_cache,
     genre_years_search,
     genres_search,
     get_connection,
@@ -115,6 +116,57 @@ class TestListGenres:
         list_genres(fake_cursor)
         assert fake_cursor.last_params is None
 
+    def test_returns_the_expected_rows(self):
+        from tests.conftest import FakeCursor
+
+        cursor = FakeCursor(fetchall_result=[{"category_id": 1, "name": "Comedy"}])
+        assert list_genres(cursor) == [{"category_id": 1, "name": "Comedy"}]
+
+
+class TestListGenresCaching:
+    """
+    Regression tests for the 4.3.1 reference-data cache: list_genres()
+    should hit the database at most once per cursor, since the genre list
+    rarely changes within a session.
+    """
+
+    def test_second_call_with_the_same_cursor_does_not_requery(self, fake_cursor):
+        list_genres(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+        list_genres(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+
+    def test_cached_result_still_matches_the_database_response(self):
+        from tests.conftest import FakeCursor
+
+        cursor = FakeCursor(fetchall_result=[{"category_id": 2, "name": "Action"}])
+        first = list_genres(cursor)
+        second = list_genres(cursor)
+        assert first == second == [{"category_id": 2, "name": "Action"}]
+
+    def test_returned_list_is_a_fresh_copy_each_call(self, fake_cursor):
+        # Mutating one call's result must never affect a later call's
+        # result — otherwise a caller that (say) sorts the list in place
+        # would corrupt the shared cache for everyone else.
+        first = list_genres(fake_cursor)
+        first.append({"category_id": 999, "name": "Injected"})
+        second = list_genres(fake_cursor)
+        assert {"category_id": 999, "name": "Injected"} not in second
+
+    def test_force_refresh_bypasses_the_cache(self, fake_cursor):
+        list_genres(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+        list_genres(fake_cursor, force_refresh=True)
+        assert len(fake_cursor.execute_calls) == 2
+
+    def test_different_cursors_are_cached_independently(self):
+        from tests.conftest import FakeCursor
+
+        cursor_a = FakeCursor(fetchall_result=[{"category_id": 1, "name": "Comedy"}])
+        cursor_b = FakeCursor(fetchall_result=[{"category_id": 2, "name": "Action"}])
+        assert list_genres(cursor_a) == [{"category_id": 1, "name": "Comedy"}]
+        assert list_genres(cursor_b) == [{"category_id": 2, "name": "Action"}]
+
 
 class TestGenresSearch:
     def test_single_genre(self, fake_cursor):
@@ -191,6 +243,44 @@ class TestRangeYears:
         cursor = FakeCursor(fetchall_result=[{"min_year": 1990, "max_year": 2025}])
         result = range_years(cursor)
         assert result == [{"min_year": 1990, "max_year": 2025}]
+
+
+class TestRangeYearsCaching:
+    """
+    Regression tests for the 4.3.1 reference-data cache: range_years()
+    should hit the database at most once per cursor.
+    """
+
+    def test_second_call_with_the_same_cursor_does_not_requery(self, fake_cursor):
+        range_years(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+        range_years(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+
+    def test_returned_list_is_a_fresh_copy_each_call(self, fake_cursor):
+        first = range_years(fake_cursor)
+        first.append({"min_year": 0, "max_year": 0})
+        second = range_years(fake_cursor)
+        assert {"min_year": 0, "max_year": 0} not in second
+
+    def test_force_refresh_bypasses_the_cache(self, fake_cursor):
+        range_years(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 1
+        range_years(fake_cursor, force_refresh=True)
+        assert len(fake_cursor.execute_calls) == 2
+
+
+class TestClearReferenceDataCache:
+    def test_clears_both_genres_and_years_caches(self, fake_cursor):
+        list_genres(fake_cursor)
+        range_years(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 2
+
+        clear_reference_data_cache()
+
+        list_genres(fake_cursor)
+        range_years(fake_cursor)
+        assert len(fake_cursor.execute_calls) == 4
 
 
 class TestGetConnection:

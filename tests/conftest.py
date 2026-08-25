@@ -29,6 +29,23 @@ def _reset_language():
     set_language("en")
 
 
+@pytest.fixture(autouse=True)
+def _reset_reference_data_cache():
+    """
+    Clears the list_genres()/range_years() cache before and after every
+    test. Each test typically gets its own `fake_cursor` instance, so the
+    lru_cache (keyed by cursor identity) wouldn't normally leak data
+    between tests either way — but clearing explicitly keeps this
+    independent of that fixture-instance detail and avoids the cache
+    growing unbounded across the whole test run.
+    """
+    from app.db.sql_connection import clear_reference_data_cache
+
+    clear_reference_data_cache()
+    yield
+    clear_reference_data_cache()
+
+
 class FakeCursor:
     """
     A minimal stand-in for a pymysql DictCursor.
