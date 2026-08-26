@@ -4,6 +4,65 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.3.2] - 2026-08-23
+
+Third release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)
+for the full plan). This one is the big one: a shared output-formatting
+module plus a results-export feature.
+
+### Added
+- `../app/utils/formatting.py`: a new shared module for turning
+  `list[dict]` data into a console table, CSV text, or JSON text.
+  - `Column`: a small dataclass describing one column (`key`, `header`,
+    `max_width`, `align`), shared across all three output formats.
+  - `format_table()`: renders a fixed-width plain-text table. Every
+    value is truncated (with a trailing "…") to its column's
+    `max_width`, so a table can no longer be pushed out of alignment by
+    an unexpectedly long value — every line is guaranteed to be the
+    same width.
+  - `to_csv()` / `to_json()`: render the same rows without truncation
+    (full values, since these formats are for other programs to
+    consume, not a fixed-width terminal). `to_json()` can optionally
+    re-key output to each column's `header` for human-readable field
+    names, and falls back to `str()` for values that aren't natively
+    JSON-serializable (e.g. `datetime`).
+  - `default_export_filename()` / `write_export_file()`: timestamped
+    filenames and a small helper that creates missing parent
+    directories before writing.
+- **Results export**: `app/utils/pagination.py` gained a new **[e]**
+  navigation option. It exports the *entire* result set currently being
+  browsed (not just the page on screen) to CSV or JSON under a new
+  `exports/` directory (gitignored), with a timestamped filename.
+  Export columns include `description`, which every search query already
+  fetches but the console table has no room to display.
+- New locale keys (`col_description`, `nav_export`,
+  `export_prompt_format`, `export_invalid_format`, `export_success`,
+  `export_error`) added to all 4 locales.
+- 39 new tests: `../tests/test_formatting.py` (the formatting module in
+  isolation) and new `TestLongValuesDoNotBreakAlignment` /
+  `TestExportResults` classes in `tests/test_pagination.py` — 361 tests
+  total.
+
+### Fixed
+- `print_results_paginated()`'s console table no longer misaligns when a
+  film title (or any other cell) is longer than its column: the value is
+  now truncated with an ellipsis via `format_table()` instead of being
+  printed in full and overflowing into the next column.
+
+### Changed
+- `app/utils/pagination.py` now delegates table rendering to
+  `app.utils.formatting.format_table()` instead of hand-rolled f-string
+  formatting. Behavior for normal-length values is unchanged; only the
+  overflow case (see "Fixed" above) is different.
+
+### Notes
+- `app/services/stats_service.py`'s ~10 report tables still use their
+  own hand-rolled formatting and were deliberately left untouched in
+  this release — migrating them to `../app/utils/formatting.py` is a
+  larger, separate effort with limited shared benefit (each report has
+  a different, fairly fixed column layout) and is not currently planned
+  as part of the 4.3.x series.
+
 ## [4.3.1] - 2026-08-25
 
 Second release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)

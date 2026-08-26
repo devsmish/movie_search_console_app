@@ -66,6 +66,18 @@ non-relational databases, modular architecture, and CLI interaction design.
   genres, and descriptions come from the Sakila dataset and are **not**
   translated (they stay in the source data's original language)
 
+### 📤 Export search results
+
+* From any paginated search-results screen, press **[e]** to export the
+  full result set (all pages, not just the one on screen) to **CSV** or
+  **JSON**
+* Files are written to `exports/` with a timestamped name, e.g.
+  `exports/search_results_20260826_153000.csv`
+* Console tables, CSV, and JSON export all share the same column
+  definitions via `../app/utils/formatting.py`, so they stay consistent —
+  and a long title can no longer misalign the console table, since
+  values are now truncated to fit instead of overflowing
+
 ---
 
 ## 🏗 Project Structure
@@ -109,8 +121,9 @@ app/
 │   └── stats_service.py      # Statistics and reporting logic
 │
 ├── utils/                    # Utility functions (helpers)
+│   ├── formatting.py         # Shared table/CSV/JSON rendering, used by pagination.py
 │   ├── input_utils.py        # Safe input handling & validation
-│   ├── pagination.py         # Paginated output for results
+│   ├── pagination.py         # Paginated console output + results export (CSV/JSON)
 │   └── year_utils.py         # Year normalization & parsing
 
 tests/                         # Pytest unit test suite (see "Testing" below)
@@ -380,10 +393,18 @@ This design provides:
   `clear_reference_data_cache()` for when the underlying data is known
   to have changed mid-session
 
-### 🔜 v4.3.2 (planned)
+### 🔧 v4.3.2
 
-* Shared output-formatting module (console table, CSV, JSON) and a
-  results-export option, reusing the same formatters
+* New `../app/utils/formatting.py` module: shared `Column` definitions and
+  `format_table()` / `to_csv()` / `to_json()` renderers, so the console
+  table, CSV export, and JSON export all stay consistent
+* Fixed a long-standing bug where a film title longer than the
+  hand-rolled column width would misalign the console results table —
+  values are now truncated (with an ellipsis) to fit their column
+  instead of overflowing
+* New results-export feature: press **[e]** on any paginated
+  search-results screen to export the full result set to CSV or JSON
+  under `exports/`
 
 ### 🔜 v4.3.3 (planned)
 
