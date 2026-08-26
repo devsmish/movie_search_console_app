@@ -93,13 +93,19 @@
     "col_title": "Titel",
     "col_genre": "Genre",
     "col_year": "Erscheinungsjahr",
+    "col_description": "Beschreibung",
     "nav_prev": "[p] Vorherige Seite",
     "nav_next": "[n] Nächste Seite",
+    "nav_export": "[e] Ergebnisse exportieren",
     "nav_exit": "[q] Beenden",
     "input_prompt": "Ihre Wahl: ",
     "interrupt": "Der Benutzer hat das Programm unterbrochen!",
     "exit_message": "Ergebnisanzeige beendet",
-    "unavailable": "Befehl nicht verfügbar"
+    "unavailable": "Befehl nicht verfügbar",
+    "export_prompt_format": "Exportformat (csv/json): ",
+    "export_invalid_format": "Ungültiges Format. Bitte 'csv' oder 'json' eingeben.",
+    "export_success": "{count} Ergebnisse nach {path} exportiert",
+    "export_error": "Export fehlgeschlagen: {error}"
   },
   "stats": {
     "top5": {

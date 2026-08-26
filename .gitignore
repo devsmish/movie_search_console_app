@@ -145,6 +145,9 @@ env.bak/
 venv.bak/
 !.env.example
 
+# App-generated exports (search results exported via app.utils.pagination)
+exports/
+
 # Spyder project settings
 .spyderproject
 .spyproject

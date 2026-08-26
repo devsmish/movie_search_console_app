@@ -93,13 +93,19 @@
     "col_title": "Назва",
     "col_genre": "Жанр",
     "col_year": "Рік випуску",
+    "col_description": "Опис",
     "nav_prev": "[p] Попередня сторінка",
     "nav_next": "[n] Наступна сторінка",
+    "nav_export": "[e] Експортувати результати",
     "nav_exit": "[q] Вихід",
     "input_prompt": "Ваш вибір: ",
     "interrupt": "Користувач перервав програму!",
     "exit_message": "Перегляд результатів завершено",
-    "unavailable": "Недоступна команда"
+    "unavailable": "Недоступна команда",
+    "export_prompt_format": "Формат експорту (csv/json): ",
+    "export_invalid_format": "Невірний формат. Введіть 'csv' або 'json'.",
+    "export_success": "Експортовано результатів: {count}, файл: {path}",
+    "export_error": "Помилка експорту: {error}"
   },
   "stats": {
     "top5": {
