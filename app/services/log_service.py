@@ -1,10 +1,13 @@
 from app.utils.input_utils import build_query_key
+from app.utils.app_logger import get_logger
 from app.i18n.translator import t
 import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pymongo.collection
+
+_logger = get_logger(__name__)
 
 
 def log_request(
@@ -35,6 +38,11 @@ def log_request(
 
     Raises:
         Exception: Any exceptions during the insert operation are caught, and an error message is printed.
+
+    Notes:
+        - In addition to the console message, the full error (with
+          traceback) is written to the rotating file log at logs/app.log
+          via app.utils.app_logger, for after-the-fact debugging.
     """
     try:
         mongo_collection.insert_one(
@@ -51,3 +59,7 @@ def log_request(
     except Exception as e:
         print(f"LOG_REQUEST: {t('db.log_write_error')}")
         print(t("db.log_write_detail", error=e))
+        _logger.error(
+            "Failed to write search log to MongoDB (search_type=%s): %s",
+            search_type, e, exc_info=True,
+        )
