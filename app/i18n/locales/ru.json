@@ -93,13 +93,19 @@
     "col_title": "Название",
     "col_genre": "Жанр",
     "col_year": "Год выпуска",
+    "col_description": "Описание",
     "nav_prev": "[p] Предыдущая страница",
     "nav_next": "[n] Следующая страница",
+    "nav_export": "[e] Экспортировать результаты",
     "nav_exit": "[q] Выход",
     "input_prompt": "Ваш выбор: ",
     "interrupt": "Пользователь прервал программу!",
     "exit_message": "Просмотр результатов завершён",
-    "unavailable": "Недоступная команда"
+    "unavailable": "Недоступная команда",
+    "export_prompt_format": "Формат экспорта (csv/json): ",
+    "export_invalid_format": "Неверный формат. Введите 'csv' или 'json'.",
+    "export_success": "Экспортировано результатов: {count}, файл: {path}",
+    "export_error": "Ошибка экспорта: {error}"
   },
   "stats": {
     "top5": {
