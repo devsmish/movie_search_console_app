@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 
 from app.services import search_service
 from app.services.search_service import execute_search
@@ -102,3 +103,53 @@ class TestExecuteSearchErrorHandling:
         )
         # Logging should still have happened despite the display error.
         assert len(fake_mongo_collection.inserted) == 1
+
+
+class TestExecuteSearchFileLogging:
+    """
+    4.3.3: each of the three failure points must also be recorded in the
+    rotating file log (app.utils.app_logger), not just printed.
+    """
+
+    def test_search_failure_is_written_to_the_file_logger(self, fake_mongo_collection):
+        def broken_search():
+            raise Exception("query failed")
+
+        with patch.object(search_service, "_logger") as mock_logger:
+            execute_search(
+                search_func=broken_search,
+                mongo_collection=fake_mongo_collection,
+                search_type="keyword",
+                params={"keyword": "x"},
+            )
+
+        mock_logger.error.assert_called_once()
+        args, kwargs = mock_logger.error.call_args
+        assert "keyword" in args
+        assert kwargs.get("exc_info") is True
+
+    def test_pagination_failure_is_written_to_the_file_logger(self, fake_mongo_collection, monkeypatch):
+        def broken_pagination(results):
+            raise Exception("display crashed")
+
+        monkeypatch.setattr(search_service, "print_results_paginated", broken_pagination)
+        with patch.object(search_service, "_logger") as mock_logger:
+            execute_search(
+                search_func=lambda: [],
+                mongo_collection=fake_mongo_collection,
+                search_type="keyword",
+                params={"keyword": "x"},
+            )
+
+        mock_logger.error.assert_called_once()
+
+    def test_happy_path_does_not_touch_the_file_logger(self, fake_mongo_collection):
+        with patch.object(search_service, "_logger") as mock_logger:
+            execute_search(
+                search_func=lambda: [],
+                mongo_collection=fake_mongo_collection,
+                search_type="keyword",
+                params={"keyword": "x"},
+            )
+
+        mock_logger.error.assert_not_called()
