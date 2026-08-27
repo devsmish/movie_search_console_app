@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.3.3] - 2026-08-23
+
+Fourth release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)
+for the full plan). This one adds a rotating file log alongside the
+existing console error messages.
+
+### Added
+- `app/utils/app_logger.py`: `get_logger(name, log_dir=None,
+  max_bytes=None, backup_count=None)` returns a logger backed by a
+  `RotatingFileHandler` writing to `logs/app.log` (~1 MB per file, 3
+  rotated backups by default). Idempotent per logger name (repeated
+  calls never attach duplicate handlers), set to WARNING level, and
+  does not propagate to the root logger (so nothing leaks onto the
+  console via this path — the existing `print()` calls remain the
+  console-facing message, unchanged).
+  `reset_logger(name)` is provided for tests that need to reconfigure
+  an already-set-up logger (e.g. pointed at a different directory).
+- `app/services/log_service.py`: a MongoDB insert failure is now also
+  logged (with a full traceback) via the new file logger, in addition
+  to the existing console message.
+- `app/services/search_service.py`: all three failure points (search
+  execution, result display, request logging) are now also logged via
+  the file logger, in addition to their existing console messages.
+- 17 new tests: `../tests/test_app_logger.py` (the logger utility in
+  isolation, including rotation) plus new `TestLogRequestFileLogging`
+  / `TestExecuteSearchFileLogging` classes in the existing service test
+  files — 378 tests total.
+- `logs/` added to `.gitignore` (mirroring the existing `exports/`
+  entry from 4.3.2).
+
+### Notes
+- Console-facing behavior is unchanged: every message a user sees while
+  running the app looks exactly the same as before. The file log is
+  additive — a persistent, greppable record with full tracebacks for
+  debugging after the session has ended, which the console alone never
+  provided.
+- `app/services/stats_service.py` reports still print directly (no
+  operational failure states to log there beyond what MongoDB's own
+  driver would raise) and were left as-is, consistent with the 4.3.2
+  decision to leave that module's formatting untouched.
+
 ## [4.3.2] - 2026-08-23
 
 Third release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)

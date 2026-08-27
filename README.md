@@ -78,6 +78,17 @@ non-relational databases, modular architecture, and CLI interaction design.
   and a long title can no longer misalign the console table, since
   values are now truncated to fit instead of overflowing
 
+### 🪵 Operational error logging
+
+* Search failures, result-display failures, and MongoDB log-write
+  failures are still reported on the console as before — and are now
+  **also** written, with a full traceback, to a rotating file log at
+  `logs/app.log` (via `app/utils/app_logger.py`)
+* The log file rotates at ~1 MB, keeping 3 backups (`app.log.1`–`.3`),
+  so it never grows unbounded
+* Console output stays the same for a person watching the terminal;
+  the file is for after-the-fact debugging once the session has ended
+
 ---
 
 ## 🏗 Project Structure
@@ -121,6 +132,7 @@ app/
 │   └── stats_service.py      # Statistics and reporting logic
 │
 ├── utils/                    # Utility functions (helpers)
+│   ├── app_logger.py         # Rotating file logger for operational errors (logs/app.log)
 │   ├── formatting.py         # Shared table/CSV/JSON rendering, used by pagination.py
 │   ├── input_utils.py        # Safe input handling & validation
 │   ├── pagination.py         # Paginated console output + results export (CSV/JSON)
@@ -223,7 +235,9 @@ python app/main.py
 ```
 If a required variable is missing from `.env`, the app now stops with a
 clear message listing exactly which ones (instead of a low-level
-pymysql/pymongo connection error).
+pymysql/pymongo connection error). If a search, display, or logging
+error occurs during a session, a full traceback is written to
+`logs/app.log` in addition to the console message.
 
 ---
 
@@ -244,7 +258,7 @@ what this creates.
 
 ## ✅ Testing
 
-The project has a pytest-based unit test suite (176 tests, ~99% coverage of
+The project has a pytest-based unit test suite (378 tests, ~99% coverage of
 the `app/` package) that runs entirely against fakes/mocks — no live MySQL
 or MongoDB instance is required.
 
@@ -406,10 +420,14 @@ This design provides:
   search-results screen to export the full result set to CSV or JSON
   under `exports/`
 
-### 🔜 v4.3.3 (planned)
+### 🔧 v4.3.3
 
-* File-based logging (with rotation) for search/log-write failures,
-  replacing the current console-only error prints
+* New `app/utils/app_logger.py`: a rotating file logger (`logs/app.log`,
+  ~1 MB per file, 3 backups) for the app's own operational errors
+* Search failures, result-display failures, and MongoDB log-write
+  failures in `app/services/search_service.py` and
+  `app/services/log_service.py` are now also written to that file (with
+  a full traceback) alongside the existing console message
 
 ### 🔜 v4.3.4 (planned)
 
