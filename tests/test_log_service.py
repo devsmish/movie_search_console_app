@@ -1,5 +1,7 @@
 import datetime
+from unittest.mock import patch
 
+from app.services import log_service
 from app.services.log_service import log_request
 
 
@@ -47,3 +49,29 @@ class TestLogRequestErrorHandling:
         log_request(fake_mongo_collection, "keyword", {}, 0, 1.0, True)
         doc = fake_mongo_collection.inserted[0]
         assert doc["query_key"] == "unknown_query"
+
+
+class TestLogRequestFileLogging:
+    """
+    4.3.3: an insert failure must also be recorded in the rotating file
+    log (app.utils.app_logger), not just printed to the console.
+    """
+
+    def test_insert_failure_is_also_written_to_the_file_logger(self):
+        class BrokenMongoCollection:
+            def insert_one(self, doc):
+                raise Exception("connection reset")
+
+        with patch.object(log_service, "_logger") as mock_logger:
+            log_request(BrokenMongoCollection(), "keyword", {"keyword": "x"}, 0, 1.0, True)
+
+        mock_logger.error.assert_called_once()
+        args, kwargs = mock_logger.error.call_args
+        assert "keyword" in args
+        assert kwargs.get("exc_info") is True
+
+    def test_successful_insert_does_not_touch_the_file_logger(self, fake_mongo_collection):
+        with patch.object(log_service, "_logger") as mock_logger:
+            log_request(fake_mongo_collection, "keyword", {"keyword": "x"}, 0, 1.0, True)
+
+        mock_logger.error.assert_not_called()

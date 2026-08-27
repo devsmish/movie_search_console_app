@@ -148,6 +148,9 @@ venv.bak/
 # App-generated exports (search results exported via app.utils.pagination)
 exports/
 
+# App-generated rotating operational log (app.utils.app_logger)
+logs/
+
 # Spyder project settings
 .spyderproject
 .spyproject
