@@ -1,6 +1,8 @@
 # movie_search_console_app
 ** educational project **
 
+[![Tests](https://github.com/devsmish/movie_search_console_app/actions/workflows/tests.yml/badge.svg)](https://github.com/devsmish/movie_search_console_app/actions/workflows/tests.yml)
+
 # 🎬 Movie Search Console App
 
 A console-based application for searching movies with support for flexible filtering, search history tracking,
@@ -148,6 +150,9 @@ scripts/                       # One-off maintenance scripts (not part of the in
 migrations/                    # Plain-SQL reference for schema/index changes
 ├── 4.3.0_add_indexes.sql
 
+.github/workflows/              # CI: runs the pytest suite on push/PR
+├── tests.yml
+
 config.py                      # Env-based configuration + Config.validate() startup check
 ```
 
@@ -258,9 +263,13 @@ what this creates.
 
 ## ✅ Testing
 
-The project has a pytest-based unit test suite (378 tests, ~99% coverage of
+The project has a pytest-based unit test suite (384 tests, ~99% coverage of
 the `app/` package) that runs entirely against fakes/mocks — no live MySQL
 or MongoDB instance is required.
+
+The full suite runs automatically on every push/PR via GitHub Actions
+(see the badge at the top of this file, and
+`../.github/workflows/tests.yml`), across Python 3.11–3.13.
 
 ### Run the test suite
 
@@ -276,21 +285,30 @@ pytest --cov=app --cov-report=term-missing
 
 ### What's covered
 
-* SQL query strings, query-builder functions (`build_keyword`, `build_genres`, `build_genres_years`), and 
-  dynamic validation rules (`count >= 1`)
 * Pure utility functions (`year_utils`, `input_utils`)
 * The i18n layer (`translator.py`, `language_select.py`), including a
   check that all 4 locale JSON files define exactly the same set of keys
 * SQL query strings and the query-execution wrapper functions
-  (`../app/db/sql_connection.py`), via a fake cursor
+  (`../app/db/sql_connection.py`), via a fake cursor, including the
+  `list_genres()`/`range_years()` reference-data cache
 * MongoDB connection/query helpers, via a fake collection
 * All search flows (`keyword`, `genre`, `years`, `genre_years`) — happy
   path, cancellation, `Ctrl+C`, and invalid-input retry loops
-* `execute_search`, `log_request`, and the statistics reports
-* Pagination navigation and edge cases (first/last page, invalid commands)
+* `execute_search`, `log_request`, and the statistics reports, including
+  that failures are written to the rotating file log (`app_logger.py`)
+  in addition to the console message
+* Pagination navigation and edge cases (first/last page, invalid
+  commands), the shared `formatting.py` table/CSV/JSON renderers, and
+  the results-export feature
 * Menu routing (`main_menu`, `search_menu`, `stats_menu`), including a
   regression test that DB connections close via `try/finally` even if a
-  submenu raises an unhandled exception
+  submenu raises an unhandled exception, and that missing `.env`
+  configuration is reported before any connection is attempted
+* The application entry point (`app/main.py`): UTF-8 console setup
+  (including its fallback paths) and the language-selection → menu
+  wiring
+* SQL query strings, query-builder functions (`build_keyword`, `build_genres`, 
+  `build_genres_years`), and dynamic validation rules (`count >= 1`)
 
 Tests live under `tests/`, with shared fixtures (fake cursor, fake Mongo
 collection, frozen-time helper) in `../tests/conftest.py`.
@@ -429,10 +447,21 @@ This design provides:
   `app/services/log_service.py` are now also written to that file (with
   a full traceback) alongside the existing console message
 
-### 🔜 v4.3.4 (planned)
+### 🔧 v4.3.4
 
-* Additional test coverage for `app/main.py`
-* CI workflow (GitHub Actions) running the test suite on push/PR
+* Added test coverage for `app/main.py`: UTF-8 console setup (including
+  its `AttributeError`/`ValueError` fallback paths, and that one stream
+  failing doesn't block the other) and the language-selection → menu
+  wiring (including the cancel path)
+* New `../.github/workflows/tests.yml`: runs the full pytest suite on every
+  push/PR to `main`, across Python 3.11, 3.12, and 3.13
+* README `Tests` badge and an updated `Testing` section reflecting the
+  current suite (384 tests, ~99% coverage)
+
+This closes out the 4.3.x series that started in 4.3.0 — see the
+entries above for the full set of changes (DB indexes, config
+validation, reference-data caching, shared output formatting + export,
+rotating file logging, and now test/CI hardening).
 
 ### 🔐 v5.0.0
 
