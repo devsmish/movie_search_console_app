@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.3.4] - 2026-08-23
+
+Fifth and final release in the staged 4.3.x series that started in
+[4.3.0](#430---2026-08-22). This one closes it out with test coverage
+for the entry point and a CI workflow.
+
+### Added
+- `tests/test_main.py`: new coverage for `app/main.py` —
+  - `_force_utf8_console()`'s fallback paths: a stream that lacks
+    `reconfigure()` entirely (`AttributeError`), a stream whose
+    `reconfigure()` raises `ValueError`, and confirmation that stdout
+    failing doesn't prevent stderr from still being reconfigured.
+  - That `reconfigure()` is actually called with
+    `encoding="utf-8", errors="replace"` on both streams (the previous
+    test only checked the no-op case).
+  - That `_force_utf8_console()` runs first, before `choose_language()`
+    — and that it still runs even when the language choice is
+    cancelled.
+  - 6 new tests; `tests/test_main.py` now has 9 (previously 3).
+- `../.github/workflows/tests.yml`: runs `pytest --cov=app
+  --cov-report=term-missing` on every push and pull request targeting
+  `main`, across a Python 3.11 / 3.12 / 3.13 matrix. No live MySQL/Mongo
+  needed — the whole suite runs against the fakes in
+  `tests/conftest.py`, same as running it locally.
+- A `Tests` status badge and an updated `Testing` section in the README
+  (test count, coverage note, and a mention of the new CI workflow).
+
+### Notes
+- Total suite size after this release: 384 tests, ~99% coverage of the
+  `app/` package (per `pytest --cov=app`).
+- The `if __name__ == "__main__": main()` guard at the bottom of
+  `app/main.py` was deliberately left untested — it's a one-line
+  standard idiom, and the only ways to exercise it directly
+  (`runpy`/subprocess) either re-import the module fresh (defeating
+  `unittest.mock.patch` on the already-imported module) or spawn a real
+  interactive process, neither of which is worth the added fragility
+  for a single line of boilerplate.
+
 ## [4.3.3] - 2026-08-23
 
 Fourth release in the staged 4.3.x series (see [4.3.0](#430---2026-08-22)
