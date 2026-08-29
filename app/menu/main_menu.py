@@ -1,6 +1,7 @@
 from app.db.sql_connection import get_connection
 from app.db.mongo_connection import get_mongo_collection
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.menu.search_menu import search_menu
 from app.menu.stats_menu import stats_menu
 from app.i18n.translator import t, banner
@@ -40,10 +41,10 @@ def main_menu() -> None:
         cursor = connection.cursor()
         mongo_collection = get_mongo_collection()
     except ConfigError as e:
-        print(f"\033[31m{t('config.missing_vars', vars=', '.join(e.missing))}\033[0m")
+        print(red(t("config.missing_vars", vars=", ".join(e.missing))))
         return
     except Exception as e:
-        print(f"\033[31m{t('app.startup_error', error=e)}\033[0m")
+        print(red(t("app.startup_error", error=e)))
         return
 
     print(f"\n{banner('app.banner_title')}")
@@ -58,12 +59,12 @@ def main_menu() -> None:
 {t('menu.main.option_exit')}""")
             initial_choice = safe_input(
                 t("menu.main.input_prompt"),
-                interrupt_msg=f"\033[31m{t('menu.main.interrupt')}\033[0m"
+                interrupt_msg=red(t("menu.main.interrupt"))
             )
             if initial_choice is None:
                 return
             if initial_choice == "":
-                print(f"\033[31m{t('errors.empty_input')}\033[0m")
+                print(red(t("errors.empty_input")))
                 continue
 
             if initial_choice == "1":
@@ -74,7 +75,7 @@ def main_menu() -> None:
                 print(t("menu.main.goodbye"))
                 break
             else:
-                print(f"\033[31m{t('errors.invalid_choice')}\033[0m")
+                print(red(t("errors.invalid_choice")))
     finally:
         cursor.close()
         connection.close()
