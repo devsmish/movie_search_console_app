@@ -1,4 +1,5 @@
 from tests.conftest import FakeMongoCollection
+from app.services import stats_service
 from app.services.stats_service import (
     activity_by_day_requests,
     avg_duration_requests,
@@ -11,6 +12,21 @@ from app.services.stats_service import (
     year_range_popularity_requests,
     zero_result_requests,
 )
+
+
+class TestSeparatorWidthConstant:
+    """
+    Regression test for the 4.4.0 cleanup: every report's separator line
+    must come from the shared SEPARATOR_WIDTH constant, not a hardcoded
+    number repeated per report, so they can never drift out of sync.
+    """
+
+    def test_top5_report_separator_matches_the_constant(self, capsys, monkeypatch):
+        monkeypatch.setattr(stats_service, "SEPARATOR_WIDTH", 20)
+        top5_requests(FakeMongoCollection(aggregate_result=[{"_id": "keyword_x", "count": 1}]))
+        captured = capsys.readouterr()
+        assert "-" * 20 in captured.out
+        assert "-" * 88 not in captured.out
 
 
 class TestTop5Requests:
