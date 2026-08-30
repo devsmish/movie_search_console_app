@@ -1,3 +1,6 @@
+from app.utils.console_colors import red
+
+
 def safe_input(prompt: str, interrupt_msg: str = None, allow_empty: bool = True) -> str | None:
     """
     Safely gets user input from the console.
@@ -23,7 +26,7 @@ def safe_input(prompt: str, interrupt_msg: str = None, allow_empty: bool = True)
         return value
 
     except KeyboardInterrupt:
-        print(f"\033[31m{interrupt_msg or 'Input interrupted by user'}\033[0m")
+        print(red(interrupt_msg or "Input interrupted by user"))
         return None
 
 

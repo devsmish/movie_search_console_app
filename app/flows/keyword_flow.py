@@ -1,4 +1,5 @@
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.services.search_service import execute_search
 from app.db.sql_connection import keywords_search
 from app.i18n.translator import t, banner
@@ -23,7 +24,7 @@ def input_keyword() -> str | None:
 {t('flows.keyword.instruction')}""")
     input_word = safe_input(
         t("flows.keyword.input_prompt"),
-        interrupt_msg=f"\033[31m{t('flows.keyword.interrupt')}\033[0m\n"
+        interrupt_msg=red(t("flows.keyword.interrupt")) + "\n"
     )
     if input_word is None:
         return None
@@ -51,7 +52,7 @@ def keyword_flow(cursor, mongo_collection) -> None:
             print(t("flows.keyword.cancelled"))
             break
         if keyword == "":
-            print(f"\033[31m{t('errors.empty_selection')}\033[0m")
+            print(red(t("errors.empty_selection")))
             continue
         if keyword == "q":
             break

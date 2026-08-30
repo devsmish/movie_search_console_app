@@ -1,4 +1,5 @@
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.flows.keyword_flow import keyword_flow
 from app.flows.years_flow import years_flow
 from app.flows.genre_flow import genres_flow
@@ -42,7 +43,7 @@ def search_menu(cursor, mongo_collection) -> None:
 
         search_choice = safe_input(
             t("menu.search.input_prompt"),
-            interrupt_msg=f"\033[31m{t('menu.search.interrupt')}\033[0m"
+            interrupt_msg=red(t("menu.search.interrupt"))
         )
         if search_choice is None:
             return
@@ -58,4 +59,4 @@ def search_menu(cursor, mongo_collection) -> None:
         elif search_choice.lower() == "q":
             break
         else:
-            print(f"\033[31m{t('errors.invalid_choice')}\033[0m")
+            print(red(t("errors.invalid_choice")))

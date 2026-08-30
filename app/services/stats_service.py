@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     import pymongo.collection
 
 
+SEPARATOR_WIDTH = 88
+
+
 def top5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
     """
     Displays the top 5 most frequent search queries from MongoDB logs.
@@ -40,7 +43,7 @@ def top5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.top5.col_query'):<45}| {t('stats.top5.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<45}| {row['count']:<5}")
 
@@ -69,7 +72,7 @@ def last5_requests(mongo_collection: "pymongo.collection.Collection") -> None:
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.last5.col_query_key'):<40}| {t('stats.last5.col_search_type'):<18}| {t('stats.last5.col_results_count'):<14}| {t('stats.last5.col_duration')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['query_key']:<40}| {row['search_type']:<18}| {row['results_count']:<14}|\
 {row['duration_ms']:>9.3f} ms")
@@ -96,7 +99,7 @@ def zero_result_requests(mongo_collection: "pymongo.collection.Collection") -> N
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.zero_results.col_query'):<40}| {t('stats.zero_results.col_count'):<16}| {t('stats.zero_results.col_last_seen')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<40}| {row['count']:<16}| {row['last_seen']}")
 
@@ -120,7 +123,7 @@ def search_type_breakdown_requests(mongo_collection: "pymongo.collection.Collect
         return
     total = sum(row["count"] for row in result)
     print(f"\n{t('stats.search_type_breakdown.col_type'):<20}| {t('stats.search_type_breakdown.col_count'):<10}| {t('stats.search_type_breakdown.col_share')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         share = (row["count"] / total * 100) if total else 0
         print(f"{row['_id']:<20}| {row['count']:<10}| {share:>5.1f}%")
@@ -144,7 +147,7 @@ def avg_duration_requests(mongo_collection: "pymongo.collection.Collection") -> 
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.avg_duration.col_type'):<20}| {t('stats.avg_duration.col_avg_duration'):<18}| {t('stats.avg_duration.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<20}| {row['avg_duration_ms']:>16.3f} | {row['count']}")
 
@@ -166,7 +169,7 @@ def activity_by_day_requests(mongo_collection: "pymongo.collection.Collection") 
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.activity_by_day.col_date'):<15}| {t('stats.activity_by_day.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<15}| {row['count']}")
 
@@ -190,7 +193,7 @@ def success_rate_requests(mongo_collection: "pymongo.collection.Collection") -> 
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.success_rate.col_type'):<20}| {t('stats.success_rate.col_total'):<8}| {t('stats.success_rate.col_successful'):<12}| {t('stats.success_rate.col_rate')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<20}| {row['total']:<8}| {row['successful']:<12}| {row['success_rate_pct']:>5.1f}%")
 
@@ -214,7 +217,7 @@ def year_range_popularity_requests(mongo_collection: "pymongo.collection.Collect
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.year_range_popularity.col_decade'):<15}| {t('stats.year_range_popularity.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{str(row['_id']) + 's':<15}| {row['count']}")
 
@@ -238,7 +241,7 @@ def top_genres_requests(mongo_collection: "pymongo.collection.Collection") -> No
         print(f"\n{t('stats.no_data')}")
         return
     print(f"\n{t('stats.top_genres.col_genre'):<30}| {t('stats.top_genres.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for row in result:
         print(f"{row['_id']:<30}| {row['count']}")
 
@@ -284,7 +287,7 @@ def genre_co_occurrence_requests(mongo_collection: "pymongo.collection.Collectio
 
     top_pairs = sorted(pair_counts.items(), key=lambda item: item[1], reverse=True)[:10]
     print(f"\n{t('stats.genre_co_occurrence.col_pair'):<40}| {t('stats.genre_co_occurrence.col_count')}")
-    print("-" * 88)
+    print("-" * SEPARATOR_WIDTH)
     for (genre_a, genre_b), count in top_pairs:
         pair_label = f"{genre_a} + {genre_b}"
         print(f"{pair_label:<40}| {count}")

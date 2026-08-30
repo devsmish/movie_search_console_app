@@ -1,4 +1,5 @@
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.db.sql_connection import list_genres, genres_search
 from app.services.search_service import execute_search
 from app.i18n.translator import t, banner
@@ -53,14 +54,14 @@ def get_genres(cursor) -> list[str] | None:
     while True:
         choice = safe_input(
             f"\n{t('flows.genre.input_prompt')}",
-            interrupt_msg=f"\033[31m{t('flows.genre.interrupt')}\033[0m\n"
+            interrupt_msg=red(t("flows.genre.interrupt")) + "\n"
         )
         if choice is None or choice == "q":
             return None
 
         tokens = [token.strip() for token in choice.split(",") if token.strip()]
         if not tokens:
-            print(f"\033[31m{t('flows.genre.invalid')}\033[0m")
+            print(red(t("flows.genre.invalid")))
             continue
 
         selected = []
@@ -79,7 +80,7 @@ def get_genres(cursor) -> list[str] | None:
         if all_valid and selected:
             return selected
 
-        print(f"\033[31m{t('flows.genre.invalid')}\033[0m")
+        print(red(t("flows.genre.invalid")))
 
 
 def genres_flow(cursor, mongo_collection) -> None:

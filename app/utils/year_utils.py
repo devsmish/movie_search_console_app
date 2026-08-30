@@ -29,7 +29,7 @@ def normalize_year_input(year: str | int) -> int:
             try:
                 return int(year)
             except ValueError:
-                raise ValueError("\033[31mIncorrect year!\033[0m")
+                raise ValueError("Incorrect year!")
     else:
         year_int = year
 

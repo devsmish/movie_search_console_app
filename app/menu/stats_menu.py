@@ -1,4 +1,5 @@
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.services.stats_service import (
     activity_by_day_requests,
     avg_duration_requests,
@@ -61,7 +62,7 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
 {t('menu.stats.option_back')}""")
         statistic_choice = safe_input(
             t("menu.stats.input_prompt"),
-            interrupt_msg=f"\033[31m{t('menu.stats.interrupt')}\033[0m"
+            interrupt_msg=red(t("menu.stats.interrupt"))
         )
         if statistic_choice is None:
             return
@@ -89,4 +90,4 @@ def stats_menu(mongo_collection: "pymongo.collection.Collection") -> None:
         elif statistic_choice.lower() == "q":
             break
         else:
-            print(f"\033[31m{t('errors.invalid_choice')}\033[0m")
+            print(red(t("errors.invalid_choice")))
