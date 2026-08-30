@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.4.0] - 2026-08-30
+
+### Added
+- `app/utils/console_colors.py`: a `red(text)` helper wrapping text in
+  the ANSI red-foreground/reset codes, plus `tests/test_console_colors.py`.
+- `SEPARATOR_WIDTH = 88` constant at the top of
+  `app/services/stats_service.py`.
+
+### Changed
+- Replaced ~26 duplicated `f"\033[31m{text}\033[0m"` occurrences across
+  `app/flows/genre_flow.py`, `app/flows/years_flow.py`,
+  `app/flows/keyword_flow.py`, `app/menu/main_menu.py`,
+  `app/menu/search_menu.py`, `app/menu/stats_menu.py`,
+  `app/utils/pagination.py`, and `app/utils/input_utils.py` with calls
+  to the new `red()` helper. One place to change the color (or add a
+  `--no-color` mode) instead of 26.
+- Replaced 10 occurrences of a hardcoded `"-" * 88` in
+  `app/services/stats_service.py`'s report functions with
+  `"-" * SEPARATOR_WIDTH`.
+- `tests/test_stats_service.py`: added `TestSeparatorWidthConstant`,
+  which monkeypatches `SEPARATOR_WIDTH` and confirms a report's
+  separator line follows it — a regression guard against the 10 reports
+  drifting out of sync again in the future.
+- 5 new tests total (4 for `console_colors.py`, 1 for the
+  `SEPARATOR_WIDTH` constant) — 389 tests total.
+
+### Fixed
+- `app/utils/year_utils.py`: `normalize_year_input()` used to raise
+  `ValueError("\033[31mIncorrect year!\033[0m")` — a stray ANSI-colored,
+  untranslated message baked directly into an exception. It was dead
+  weight: `years_flow.py` always catches `ValueError` generically and
+  shows its own translated message instead, so this text was never
+  actually displayed to a user. Simplified to a plain internal message
+  (`"Incorrect year!"`), with a comment explaining why.
+
 ## [4.3.4] - 2026-08-23
 
 Fifth and final release in the staged 4.3.x series that started in
