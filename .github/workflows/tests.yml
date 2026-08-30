@@ -19,7 +19,7 @@ jobs:
       matrix:
         # 3.10 is the practical floor: the codebase uses `X | None`
         # union-type hints (PEP 604), which require 3.10+.
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Check out repository
