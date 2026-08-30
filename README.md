@@ -135,6 +135,7 @@ app/
 │
 ├── utils/                    # Utility functions (helpers)
 │   ├── app_logger.py         # Rotating file logger for operational errors (logs/app.log)
+│   ├── console_colors.py     # Shared red() helper for console error messages
 │   ├── formatting.py         # Shared table/CSV/JSON rendering, used by pagination.py
 │   ├── input_utils.py        # Safe input handling & validation
 │   ├── pagination.py         # Paginated console output + results export (CSV/JSON)
@@ -269,7 +270,7 @@ or MongoDB instance is required.
 
 The full suite runs automatically on every push/PR via GitHub Actions
 (see the badge at the top of this file, and
-`../.github/workflows/tests.yml`), across Python 3.11–3.13.
+`../.github/workflows/tests.yml`), across Python 3.11–3.14.
 
 ### Run the test suite
 
@@ -462,6 +463,19 @@ This closes out the 4.3.x series that started in 4.3.0 — see the
 entries above for the full set of changes (DB indexes, config
 validation, reference-data caching, shared output formatting + export,
 rotating file logging, and now test/CI hardening).
+
+### 🔧 v4.4.0
+
+* New `app/utils/console_colors.py`: a shared `red()` helper, replacing
+  ~26 duplicated `f"\033[31m{text}\033[0m"` occurrences across
+  `app/flows`, `app/menu`, and `app/utils`
+* New `SEPARATOR_WIDTH` constant in `app/services/stats_service.py`,
+  replacing 10 occurrences of a hardcoded `"-" * 88`
+* Removed a stray ANSI color code baked into an internal
+  `ValueError` message in `app/utils/year_utils.py` that was never
+  actually shown to the user (the exception is always caught and
+  replaced with a translated message by the caller)
+* No behavior change — console output is byte-identical to before
 
 ### 🔐 v5.0.0
 
