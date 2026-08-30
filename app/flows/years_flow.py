@@ -1,4 +1,5 @@
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.utils.year_utils import normalize_year_input
 from app.db.sql_connection import range_years, years_search
 from app.services.search_service import execute_search
@@ -70,14 +71,14 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
     while True:
         user_input = safe_input(
             f"\n{t('flows.years.input_prompt', min=min_year, max=max_year)}",
-            interrupt_msg=f"\033[31m{t('flows.years.interrupt')}\033[0m\n"
+            interrupt_msg=red(t("flows.years.interrupt")) + "\n"
         )
 
         if user_input is None or user_input == "q":
             return None
 
         if not user_input:
-            print(f"\033[31m{t('flows.years.empty')}\033[0m")
+            print(red(t("flows.years.empty")))
             continue
 
         try:
@@ -95,11 +96,11 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
                 start = end = year
 
             if start > end:
-                print(f"\033[31m{t('flows.years.start_after_end')}\033[0m")
+                print(red(t("flows.years.start_after_end")))
                 continue
 
             if start < min_year or end > max_year:
-                print(f"\033[31m{t('flows.years.out_of_range')}\033[0m")
+                print(red(t("flows.years.out_of_range")))
                 continue
 
             return {
@@ -108,7 +109,7 @@ def get_year_range(min_year: int, max_year: int) -> dict | None:
             }
 
         except ValueError:
-            print(f"\033[31m{t('flows.years.bad_format')}\033[0m")
+            print(red(t("flows.years.bad_format")))
 
 
 def years_flow(cursor, mongo_collection) -> None:

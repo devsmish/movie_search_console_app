@@ -1,6 +1,7 @@
 import os
 
 from app.utils.input_utils import safe_input
+from app.utils.console_colors import red
 from app.utils.formatting import (
     Column,
     default_export_filename,
@@ -19,9 +20,11 @@ EXPORT_DIR = "exports"
 
 def _result_columns() -> list["Column"]:
     """
-    Column definitions for the console table. Widths match the layout;
-    format_table() now truncates any value that doesn't fit, instead of
-    letting it silently push the table out of alignment.
+    Column definitions for the console table. Widths match the layout
+    the app has always used; the difference from the old hand-rolled
+    f-string version is that format_table() now truncates any value
+    that doesn't fit, instead of letting it silently push the table out
+    of alignment.
     """
     return [
         Column(key="film_id", header=t("pagination.col_film_id"), max_width=8),
@@ -63,12 +66,12 @@ def _export_results(results: list[dict]) -> None:
     """
     fmt = safe_input(
         t("pagination.export_prompt_format"),
-        interrupt_msg=f"\033[31m{t('pagination.interrupt')}\033[0m\n",
+        interrupt_msg=red(t("pagination.interrupt")) + "\n",
     )
     if fmt is None:
         return
     if fmt not in ("csv", "json"):
-        print(f"\033[31m{t('pagination.export_invalid_format')}\033[0m")
+        print(red(t("pagination.export_invalid_format")))
         return
 
     columns = _export_columns()
@@ -79,7 +82,7 @@ def _export_results(results: list[dict]) -> None:
         write_export_file(text, filepath)
         print(t("pagination.export_success", count=len(results), path=filepath))
     except OSError as e:
-        print(f"\033[31m{t('pagination.export_error', error=e)}\033[0m")
+        print(red(t("pagination.export_error", error=e)))
 
 
 def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
@@ -136,7 +139,7 @@ def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
 
         choice = safe_input(
             t("pagination.input_prompt"),
-            interrupt_msg=f"\033[31m{t('pagination.interrupt')}\033[0m\n"
+            interrupt_msg=red(t("pagination.interrupt")) + "\n"
         )
 
         if choice is None:
@@ -152,4 +155,4 @@ def print_results_paginated(results: list[dict], page_size: int = 10) -> None:
             print(t("pagination.exit_message"))
             break
         else:
-            print(f"\033[31m{t('pagination.unavailable')}\033[0m")
+            print(red(t("pagination.unavailable")))
