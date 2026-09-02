@@ -264,7 +264,7 @@ what this creates.
 
 ## ✅ Testing
 
-The project has a pytest-based unit test suite (384 tests, ~99% coverage of
+The project has a pytest-based unit test suite (389 tests, ~99% coverage of
 the `app/` package) that runs entirely against fakes/mocks — no live MySQL
 or MongoDB instance is required.
 
@@ -491,8 +491,10 @@ Contributions, issues, and feature requests are welcome!
 
 ## 📄 License / Data Source
 
-This project is open-source and available under the MIT License.
+This project's source code is open-source and available under the [MIT License](LICENSE).
 
 This project uses the Sakila sample database, a standard MySQL example dataset for learning and testing.
-The database is licensed under the BSD 3-Clause License, which allows free use, modification, and distribution.
+The Sakila schema and data are not bundled in this repository — they must be installed separately (see
+[dev.mysql.com/doc/sakila](https://dev.mysql.com/doc/sakila/en/sakila-installation.html) for the official install guide).
+Sakila is licensed under the BSD 3-Clause License, which permits free use, modification, and distribution.
 Source: https://dev.mysql.com/doc/sakila/en/sakila-license.html
